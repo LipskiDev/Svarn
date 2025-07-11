@@ -1,6 +1,8 @@
 #include "Application.h"
 #include "stdio.h"
 
+
+
 namespace Svarn
 {
     Application::Application()
@@ -16,7 +18,6 @@ namespace Svarn
     void Application::Run()
     {
         while(true) {
-            printf("Hello from Application\n");
         }
     }
 } // namespace Svarn

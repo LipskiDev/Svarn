@@ -1,0 +1,3 @@
+[submodule "SvarnEngine/vendor/spdlog"]
+	path = SvarnEngine/vendor/spdlog
+	url = https://github.com/gabime/spdlog
