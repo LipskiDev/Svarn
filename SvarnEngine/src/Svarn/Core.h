@@ -7,5 +7,5 @@
         #define SVARN_API __declspec(dllimport)
     #endif
 #else
-    #error Svarn only supports Windows!
+    #define SVARN_API __attribute__(((visibility("default"))))
 #endif
