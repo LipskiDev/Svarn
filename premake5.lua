@@ -8,6 +8,7 @@ workspace "SvarnEngine"
 		"Dist"
 	}
 
+
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 project "SvarnEngine"
@@ -32,7 +33,9 @@ project "SvarnEngine"
 	filter "system:windows"
 		cppdialect "C++17"
 		staticruntime "On"
-		systemversion "10.0.17134.0"
+		systemversion "latest"
+		toolset "v143"
+
 
 		defines
 		{
@@ -40,9 +43,28 @@ project "SvarnEngine"
 			"SV_BUILD_DLL"
 		}
 
-		postbuildcommands
+		postbuildcommands {
+			'{COPY} "%{cfg.buildtarget.abspath}" "../bin/' .. outputdir .. '/Sandbox/"'
+		}
+
+	filter { "system:windows", "action:vs*" }
+		postbuildcommands {
+			'{COPY} "%{cfg.buildtarget.abspath}" "../bin/' .. outputdir .. '/Sandbox/"'
+		}
+
+	filter "system:linux"
+		cppdialect "C++17"
+		staticruntime "Off"
+		pic "On"
+
+		defines
 		{
-			("{COPY} %{cfg.buildtarget.relpath} ../bin/" .. outputdir .. "/Sandbox")
+			"SV_PLATFORM_LINUX",
+			"SV_BUILD_DLL"
+		}
+
+		postbuildcommands {
+			'{COPYFILE} "%{cfg.buildtarget.abspath}" "../bin/' .. outputdir .. '/Sandbox/"'
 		}
 
 	filter "configurations:Debug"
@@ -88,11 +110,20 @@ project "Sandbox"
 	filter "system:windows"
 		cppdialect "C++17"
 		staticruntime "On"
-		systemversion "10.0.17134.0"
+		systemversion "latest"
 
 		defines
 		{
 			"SV_PLATFORM_WINDOWS"
+		}
+
+	filter "system:linux"
+		cppdialect "C++17"
+		staticruntime "Off"
+		pic "On"
+
+		defines {
+			"SV_PLATFORM_LINUX"
 		}
 
 	filter "configurations:Debug"

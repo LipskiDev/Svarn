@@ -6,7 +6,7 @@ class Sandbox : public Svarn::Application
 public:
 	Sandbox()
 	{
-		printf("Hello from Sandbox!\n");
+		printf("Hello from Sandboxxxx");
 	}
 
 	~Sandbox()
