@@ -1,10 +1,11 @@
 # directories
 .vs
-bin
+**/bin
 bin-int
 
 #files
-*.vcxproj
-*.filters
-*.user
-*.sln
+**.vcxproj
+**.filters
+**.user
+**.sln
+**.csproj
