@@ -1,3 +1,6 @@
 [submodule "SvarnEngine/vendor/spdlog"]
 	path = SvarnEngine/vendor/spdlog
 	url = https://github.com/gabime/spdlog
+[submodule "SvarnEngine/vendor/GLFW"]
+	path = SvarnEngine/vendor/GLFW
+	url = https://github.com/LipskiDev/glfw.git

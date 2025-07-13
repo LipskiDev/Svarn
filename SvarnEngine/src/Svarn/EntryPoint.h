@@ -1,7 +1,6 @@
 #pragma once
 
 #ifdef SV_PLATFORM_WINDOWS
-#include <stdio.h>
 extern Svarn::Application* Svarn::CreateApplication();
 
 int main(int argc, char** argv) 
@@ -19,7 +18,6 @@ int main(int argc, char** argv)
 #endif
 
 #ifdef SV_PLATFORM_LINUX
-#include <stdio.h>
 extern Svarn::Application *Svarn::CreateApplication();
 
 int main(int argc, char **argv)

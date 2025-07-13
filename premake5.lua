@@ -11,6 +11,12 @@ workspace "SvarnEngine"
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
+-- Include directories relative to root folder
+IncludeDir = {}
+IncludeDir["GLFW"] = "SvarnEngine/vendor/GLFW/include"
+
+include "SvarnEngine/vendor/GLFW"
+
 project "SvarnEngine"
 	location "SvarnEngine"
 	kind "SharedLib"
@@ -18,6 +24,9 @@ project "SvarnEngine"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+
+	pchheader "svpch.h"
+	pchsource "SvarnEngine/src/svpch.cpp"
 
 	files
 	{
@@ -27,6 +36,7 @@ project "SvarnEngine"
 
 	includedirs
 	{
+		"%{prj.name}/src",
 		"%{prj.name}/vendor/spdlog/include"
 	}
 
@@ -111,6 +121,7 @@ project "Sandbox"
 		cppdialect "C++17"
 		staticruntime "On"
 		systemversion "latest"
+		toolset "v143"
 
 		defines
 		{
@@ -119,6 +130,7 @@ project "Sandbox"
 
 	filter "system:linux"
 		cppdialect "C++17"
+		toolset "v143"
 		staticruntime "Off"
 		pic "On"
 
