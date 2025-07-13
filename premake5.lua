@@ -138,6 +138,10 @@ project "Sandbox"
 			"SV_PLATFORM_LINUX"
 		}
 
+		postbuildcommands {
+			'mkdir -p ../bin/' .. outputdir .. '/Sandbox/'
+		}
+
 	filter "configurations:Debug"
 		defines "HZ_DEBUG"
 		symbols "On"
