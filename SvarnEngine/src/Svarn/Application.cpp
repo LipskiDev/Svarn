@@ -1,15 +1,19 @@
 #include <svpch.h>
 #include "Application.h"
 
-#include "Events/ApplicationEvent.h"
 #include "Log.h"
+
+#include <GLFW/glfw3.h>
 
 
 namespace Svarn
 {
+#define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
+
     Application::Application()
     {
-        
+        m_Window = std::unique_ptr<Window>(Window::Create());
+        m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
     }
     
     Application::~Application()
@@ -19,21 +23,24 @@ namespace Svarn
 
     void Application::Run()
     {
+        
 
-        WindowResizeEvent e(1280, 720);
-        SV_TRACE(e);
-        WindowCloseEvent e1;
-        SV_TRACE(e1);
-        WindowCloseEvent e2;
-        SV_TRACE(e2);
-        AppTickEvent e3;
-        SV_TRACE(e3);
-        AppUpdateEvent e4;
-        SV_TRACE(e4);
-        AppRenderEvent e5;
-        SV_TRACE(e5);
-
-        while(true) {
+        while(m_Running) {
+            m_Window->OnUpdate();
+            glClearColor(1, 0, 1, 1);
+            glClear(GL_COLOR_BUFFER_BIT);
         }
+    }
+    void Application::OnEvent(Event &e)
+    {
+        EventDispatcher dispatcher(e);
+        dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(OnWindowClose));
+        SV_CORE_TRACE("{0}", e);
+    }
+
+    bool Application::OnWindowClose(WindowCloseEvent& e)
+    {
+        m_Running = false;
+        return true;
     }
 } // namespace Svarn

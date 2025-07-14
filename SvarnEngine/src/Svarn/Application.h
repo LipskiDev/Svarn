@@ -1,7 +1,10 @@
 #pragma once
 
-#include "Core.h"
-#include "Events/Event.h"
+#include <Svarn/Core.h>
+#include <Svarn/Events/Event.h>
+#include <Svarn/Window.h>
+#include "Events/ApplicationEvent.h"
+
 
 namespace Svarn {
     class SVARN_API Application
@@ -11,6 +14,14 @@ namespace Svarn {
         virtual ~Application();
 
         void Run();
+
+        void OnEvent(Event &e);
+
+    private:
+        bool OnWindowClose(WindowCloseEvent& e);
+
+        std::unique_ptr<Window> m_Window;
+        bool m_Running = true;
     };
 
     Application* CreateApplication();

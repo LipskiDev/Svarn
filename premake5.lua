@@ -37,7 +37,16 @@ project "SvarnEngine"
 	includedirs
 	{
 		"%{prj.name}/src",
-		"%{prj.name}/vendor/spdlog/include"
+		"%{prj.name}/vendor/spdlog/include",
+		"%{IncludeDir.GLFW}"
+	}
+
+	links
+	{
+		"GLFW",
+		"opengl32.lib",
+		"dwmapi.lib"
+
 	}
 
 	filter "system:windows"
@@ -50,7 +59,8 @@ project "SvarnEngine"
 		defines
 		{
 			"SV_PLATFORM_WINDOWS",
-			"SV_BUILD_DLL"
+			"SV_BUILD_DLL",
+			"GLFW_STATIC"
 		}
 
 		postbuildcommands {
@@ -66,11 +76,13 @@ project "SvarnEngine"
 		cppdialect "C++17"
 		staticruntime "Off"
 		pic "On"
+		toolset "v143"
 
 		defines
 		{
 			"SV_PLATFORM_LINUX",
-			"SV_BUILD_DLL"
+			"SV_BUILD_DLL",
+			"GLFW_STATIC"
 		}
 
 		postbuildcommands {

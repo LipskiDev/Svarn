@@ -57,7 +57,7 @@ namespace Svarn {
 		{
 		}
 
-		template<typename T, typename F>
+		template<typename T>
 		bool Dispatch(EventFn<T> func)
 		{
 			if(m_Event.GetEventType() == T::GetStaticType())
