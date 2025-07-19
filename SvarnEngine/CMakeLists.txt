@@ -7,6 +7,16 @@ project(SvarnEngine
 
 
 
+if (WIN32)
+	message("Build for Windows")
+    add_compile_definitions(SV_PLATFORM_WINDOWS)
+elseif (APPLE)
+	message("Build for Mac")
+    add_compile_definitions(SV_PLATFORM_MAC)
+elseif (UNIX)
+	message("Build for Linux")
+    add_compile_definitions(SV_PLATFORM_LINUX)
+endif()
 
 
 
@@ -30,13 +40,6 @@ target_compile_definitions(SvarnEngine PRIVATE
 )
 
 
-if (WIN32)
-    add_compile_definitions(SV_PLATFORM_WINDOWS)
-elseif (APPLE)
-    add_compile_definitions(SV_PLATFORM_MAC)
-elseif (UNIX)
-    add_compile_definitions(SV_PLATFORM_LINUX)
-endif()
 
 target_compile_definitions(SvarnEngine PRIVATE SV_BUILD_DLL)
 
