@@ -83,7 +83,6 @@ function(svarn_set_compiler_options target_name)
             -pedantic 
             -Wno-long-long 
             -Wshadow 
-            -Werror 
             -Wno-error=deprecated-declarations
         )
     endif()

@@ -29,8 +29,17 @@ target_compile_definitions(SvarnEngine PRIVATE
 						YAML_CPP_STATIC_DEFINE
 )
 
-target_compile_definitions(SvarnEngine PRIVATE SV_PLATFORM_WINDOWS)
+
+if (WIN32)
+    add_compile_definitions(SV_PLATFORM_WINDOWS)
+elseif (APPLE)
+    add_compile_definitions(SV_PLATFORM_MAC)
+elseif (UNIX)
+    add_compile_definitions(SV_PLATFORM_LINUX)
+endif()
+
 target_compile_definitions(SvarnEngine PRIVATE SV_BUILD_DLL)
+
 
 target_include_directories(SvarnEngine PRIVATE
 	src
@@ -38,11 +47,21 @@ target_include_directories(SvarnEngine PRIVATE
 	vendor/spdlog-src/include
 )
 
-
-
-target_link_libraries(SvarnEngine
-	glad
-	glfw
-	spdlog::spdlog
-	opengl32.lib
-)
+if(WIN32)
+    target_link_libraries(
+        SvarnEngine
+        glad
+        glfw
+        spdlog::spdlog
+        opengl32           # ohne .lib – das ist MSVC-Notation, nicht nötig
+    )
+elseif(UNIX)
+    find_package(OpenGL REQUIRED)
+    target_link_libraries(
+        SvarnEngine
+        glad
+        glfw
+        spdlog::spdlog
+        OpenGL::GL
+    )
+endif()

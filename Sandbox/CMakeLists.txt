@@ -21,7 +21,17 @@ add_dependencies(Sandbox
 # Set up common include directories
 svarn_set_common_include_directories(Sandbox)
 
-target_compile_definitions(Sandbox PRIVATE SV_PLATFORM_WINDOWS)
+if (WIN32)
+    target_compile_definitions(Sandbox PRIVATE SV_PLATFORM_WINDOWS)
+
+elseif (APPLE)
+    target_compile_definitions(Sandbox PRIVATE SV_PLATFORM_MAC)
+
+elseif (UNIX)
+    target_compile_definitions(Sandbox PRIVATE SV_PLATFORM_LINUX)
+
+endif()
+
 
 
 

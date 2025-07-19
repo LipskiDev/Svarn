@@ -9,6 +9,7 @@ Sandbox/src/Sandbox.dir/Debug
 SvarnEngine/src/SvarnEngine.dir/Debug
 SvarnEngine/src/Debug
 /x64
+/.cache
 
 #files
 **.vcxproj
