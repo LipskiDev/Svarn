@@ -4,6 +4,8 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
 
+
+
 namespace Svarn {
     class SVARN_API Log
     {
@@ -18,6 +20,7 @@ namespace Svarn {
 
     };
 };
+
 
 
 // Core log macros

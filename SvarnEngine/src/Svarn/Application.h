@@ -13,7 +13,7 @@ namespace Svarn {
         Application();
         virtual ~Application();
 
-        void Run();
+        virtual void Run();
 
         void OnEvent(Event &e);
 

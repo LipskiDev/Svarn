@@ -3,6 +3,7 @@
 
 #include "Log.h"
 
+#include <glad/gl.h>
 #include <GLFW/glfw3.h>
 
 
@@ -23,8 +24,6 @@ namespace Svarn
 
     void Application::Run()
     {
-        
-
         while(m_Running) {
             m_Window->OnUpdate();
             glClearColor(1, 0, 1, 1);

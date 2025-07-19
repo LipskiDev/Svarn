@@ -8,6 +8,7 @@
 namespace Svarn {
 	
 	static bool s_GLFWInitialized = false;
+	static bool s_GLADInitialized = false;
 
 	static void GLFWErrorCallback(int error, const char *description)
 	{
@@ -69,10 +70,18 @@ namespace Svarn {
 			s_GLFWInitialized = true;
 		}
 
+		
+
 		m_Window = glfwCreateWindow((int) props.Width, (int) props.Height, m_Data.Title.c_str(), nullptr, nullptr);
 		glfwMakeContextCurrent(m_Window);
 		glfwSetWindowUserPointer(m_Window, &m_Data);
 		SetVSync(true);
+
+		if(!s_GLADInitialized) {
+			int success = gladLoadGL(glfwGetProcAddress);
+			SV_CORE_ASSERT(success, "Could not initialize GLAD!");
+			s_GLADInitialized = true;
+		}
 
 		// Set GLFW callbacks
 		glfwSetWindowSizeCallback(m_Window, [] (GLFWwindow *window, int width, int height)

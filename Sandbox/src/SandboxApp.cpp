@@ -1,6 +1,8 @@
 #include <Svarn.h>
 #include <stdio.h>
 
+
+
 class Sandbox : public Svarn::Application
 {
 public:
@@ -17,5 +19,6 @@ public:
 
 Svarn::Application* Svarn::CreateApplication()
 {
+	SV_CORE_TRACE("Svarn::CreateApplication was called");
 	return new Sandbox();
 }

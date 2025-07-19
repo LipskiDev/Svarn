@@ -7,7 +7,7 @@
         #define SVARN_API __declspec(dllimport)
     #endif
 #else
-    #define SVARN_API __attribute__(((visibility("default"))))
+    #define SVARN_API __attribute__((visibility("default")))
 #endif
 
 #ifdef SV_ENABLE_ASSERTS
