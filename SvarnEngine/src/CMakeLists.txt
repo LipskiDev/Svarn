@@ -37,6 +37,7 @@ add_custom_command(TARGET SvarnEngine POST_BUILD
 
 	COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:SvarnEngine> "${PROJECT_SOURCE_DIR}/../build/Sandbox/src/Debug"
 	COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:SvarnEngine> "${PROJECT_SOURCE_DIR}/../Sandbox/src/Debug"
+	COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:SvarnEngine> "${PROJECT_SOURCE_DIR}/../build/Sandbox/src/Debug"
 )
 
 
