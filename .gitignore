@@ -45,4 +45,4 @@ Makefile
 # Don't upload vendor folder, except for the CMakeLists.txt
 !SvarnEngine/vendor/
 SvarnEngine/vendor/*
-!SvarnEngine//vendor/CMakeLists.txt
+!SvarnEngine/vendor/CMakeLists.txt
