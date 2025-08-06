@@ -2,6 +2,14 @@
 .vs
 **/bin
 bin-int
+/build
+CMakeFiles
+Sandbox/src/Debug
+Sandbox/src/Sandbox.dir/Debug
+SvarnEngine/src/SvarnEngine.dir/Debug
+SvarnEngine/src/Debug
+/x64
+/.cache
 
 #files
 **.vcxproj
@@ -10,3 +18,32 @@ bin-int
 **.sln
 **.csproj
 Makefile
+
+# Visual Studio files and folder
+.vs/
+**.sln
+**.vcxproj
+**.vcxproj.filters
+**.vcxproj.user
+**.csproj
+**.nsight-gfxproj
+**.DotSettings
+**.user
+
+# CMake ignores
+**/cmake-build-debug
+**/CMakeCache.txt
+**/cmake_install.cmake
+**/install_manifest.txt
+**/CMakeFiles/
+**/CTestTestfile.cmake
+**/Makefile
+**/*.cbp
+**/CMakeScripts
+**/compile_commands.json
+**/cpm-package-lock.cmake
+
+# Don't upload vendor folder, except for the CMakeLists.txt
+!SvarnEngine/vendor/
+SvarnEngine/vendor/*
+!SvarnEngine/vendor/CMakeLists.txt

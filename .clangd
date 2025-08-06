@@ -1,0 +1,7 @@
+HeaderInsertion:
+  InlcudeBlocks: Preserve
+  PreferredInsertions:
+    - { header: ".*", insert: "source" }
+
+CompileFlags:
+  CompilationDatabse: build
