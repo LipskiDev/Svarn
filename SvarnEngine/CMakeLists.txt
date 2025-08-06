@@ -47,6 +47,9 @@ target_compile_definitions(SvarnEngine PRIVATE SV_BUILD_DLL)
 target_include_directories(SvarnEngine PRIVATE
 	src
 	vendor/glfw-src/include
+    vendor/imgui-src
+    vendor/imgui-src/backends
+    vendor/imgui-src/examples
 	vendor/spdlog-src/include
 )
 
@@ -55,8 +58,9 @@ if(WIN32)
         SvarnEngine
         glad
         glfw
+        imgui
         spdlog::spdlog
-        opengl32           # ohne .lib – das ist MSVC-Notation, nicht nötig
+        opengl32          
     )
 elseif(UNIX)
     find_package(OpenGL REQUIRED)
@@ -64,6 +68,7 @@ elseif(UNIX)
         SvarnEngine
         glad
         glfw
+        imgui
         spdlog::spdlog
         OpenGL::GL
     )

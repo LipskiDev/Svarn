@@ -7,8 +7,15 @@
 		"Svarn/Core.h"
 		"Svarn/Application.cpp"
 		"Svarn/Application.h"
-		
-		
+        
+        "Svarn/Layer.cpp"
+        "Svarn/Layer.h"
+        "Svarn/LayerStack.cpp"
+        "Svarn/LayerStack.h"
+
+        "Svarn/ImGui/ImGuiLayer.cpp"
+        "Svarn/ImGui/ImGuiLayer.h"
+
 		"Svarn/Log.cpp"
 		"Svarn/Log.h"
 		"Svarn/Window.h"
