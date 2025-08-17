@@ -8,6 +8,10 @@ namespace Svarn {
         public:
         PerspectiveCamera(float fov, float aspectRatio, float nearClipPlane, float farClipPlane);
 
+        const glm::mat4& GetViewProjectionMatrix() { return m_ViewProjectionMatrix; }
+        const glm::mat4& GetViewMatrix() { return m_ViewMatrix; }
+        const glm::vec3& GetPosition() { return m_Position; }
+
         private:
         float m_FOV;
         float m_AspectRatio;
