@@ -1,10 +1,11 @@
-#include "WindowsWindow.h"
+#include "svpch.h"
 
+#include "LinuxWindow.h"
 #include <Svarn/Events/ApplicationEvent.h>
 #include <Svarn/Events/KeyEvent.h>
 #include <Svarn/Events/MouseEvent.h>
 
-#include "svpch.h"
+#include <Platform/OpenGL/OpenGLRenderingContext.h>
 
 namespace Svarn {
 
@@ -15,19 +16,19 @@ namespace Svarn {
     }
 
     Window *Window::Create(const WindowProps &props) {
-        return new WindowsWindow(props);
+        return new LinuxWindow(props);
     }
 
-    WindowsWindow::WindowsWindow(const WindowProps &props) { Init(props); }
+    LinuxWindow::LinuxWindow(const WindowProps &props) { Init(props); }
 
-    WindowsWindow::~WindowsWindow() { Shutdown(); }
+    LinuxWindow::~LinuxWindow() { Shutdown(); }
 
-    void WindowsWindow::OnUpdate() {
+    void LinuxWindow::OnUpdate() {
         glfwPollEvents();
-        glfwSwapBuffers(m_Window);
+        m_Context->SwapBuffers();
     }
 
-    void WindowsWindow::SetVSync(bool enabled) {
+    void LinuxWindow::SetVSync(bool enabled) {
         if (enabled) {
             glfwSwapInterval(1);
         } else {
@@ -37,9 +38,9 @@ namespace Svarn {
         m_Data.VSync = enabled;
     }
 
-    bool WindowsWindow::IsVSync() const { return false; }
+    bool LinuxWindow::IsVSync() const { return false; }
 
-    void WindowsWindow::Init(const WindowProps &props) {
+    void LinuxWindow::Init(const WindowProps &props) {
         m_Data.Title = props.Title;
         m_Data.Width = props.Width;
         m_Data.Height = props.Height;
@@ -48,6 +49,7 @@ namespace Svarn {
                      props.Height);
 
         if (!s_GLFWInitialized) {
+            glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
             int success = glfwInit();
             SV_CORE_ASSERT(success, "Could not initialize GLFW!");
             glfwSetErrorCallback(GLFWErrorCallback);
@@ -56,13 +58,11 @@ namespace Svarn {
 
         m_Window = glfwCreateWindow((int)props.Width, (int)props.Height,
                                     m_Data.Title.c_str(), nullptr, nullptr);
-        glfwMakeContextCurrent(m_Window);
+        m_Context = new OpenGLRenderingContext(m_Window);
+        m_Context->Init();
+
         glfwSetWindowUserPointer(m_Window, &m_Data);
         SetVSync(true);
-
-        int success = gladLoadGL(glfwGetProcAddress);
-        SV_CORE_ASSERT(success, "Could not initialize GLAD!");
-
         // Set GLFW callbacks
         glfwSetWindowSizeCallback(m_Window, [](GLFWwindow *window, int width,
                                                int height) {
@@ -133,6 +133,6 @@ namespace Svarn {
         });
     }
 
-    void WindowsWindow::Shutdown() { glfwDestroyWindow(m_Window); }
+    void LinuxWindow::Shutdown() { glfwDestroyWindow(m_Window); }
 
 }  // namespace Svarn

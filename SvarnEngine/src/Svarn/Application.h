@@ -7,6 +7,8 @@
 #include "Events/ApplicationEvent.h"
 #include "Svarn/LayerStack.h"
 
+#include "Svarn/ImGui/ImGuiLayer.h"
+
 namespace Svarn {
     class SVARN_API Application {
         public:
@@ -28,6 +30,7 @@ namespace Svarn {
         bool OnWindowClose(WindowCloseEvent& e);
 
         std::unique_ptr<Window> m_Window;
+        ImGuiLayer* m_ImGuiLayer;
         bool m_Running = true;
         LayerStack m_LayerStack;
 

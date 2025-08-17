@@ -7,9 +7,7 @@ extern Svarn::Application* Svarn::CreateApplication();
 
 int main(int argc, char** argv) {
     Svarn::Log::Init();
-    SV_CORE_WARN("Initialized Loggin!\n");
-    int a = 555;
-    SV_INFO("Hello! Var={0}\n", a);
+    SV_CORE_WARN("Initialized Logging!\n");
 
     auto app = Svarn::CreateApplication();
 
@@ -28,9 +26,7 @@ extern Svarn::Application* Svarn::CreateApplication();
 
 int main(int argc, char** argv) {
     Svarn::Log::Init();
-    SV_CORE_WARN("Initialized Loggin!\n");
-    int a = 555;
-    SV_INFO("Hello! Var={0}\n", a);
+    SV_CORE_WARN("Initialized Logging!\n");
 
     auto app = Svarn::CreateApplication();
     app->Run();

@@ -2,14 +2,15 @@
 
 #include <GLFW/glfw3.h>
 #include <Svarn/Window.h>
+#include <Svarn/Renderer/RenderingContext.h>
 #include <glad/gl.h>
 
 namespace Svarn {
 
-    class WindowsWindow : public Window {
+    class LinuxWindow : public Window {
         public:
-        WindowsWindow(const WindowProps &props);
-        virtual ~WindowsWindow();
+        LinuxWindow(const WindowProps &props);
+        virtual ~LinuxWindow();
 
         void OnUpdate() override;
 
@@ -23,12 +24,15 @@ namespace Svarn {
         void SetVSync(bool enabled);
         bool IsVSync() const;
 
+        inline virtual void *GetNativeWindow() const { return m_Window; }
+
         private:
         virtual void Init(const WindowProps &props);
         virtual void Shutdown();
 
         private:
         GLFWwindow *m_Window;
+        RenderingContext *m_Context;
 
         struct WindowData {
             std::string Title;

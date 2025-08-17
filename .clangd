@@ -4,4 +4,4 @@ HeaderInsertion:
     - { header: ".*", insert: "source" }
 
 CompileFlags:
-  CompilationDatabse: build
+  CompilationDatabse: cmake

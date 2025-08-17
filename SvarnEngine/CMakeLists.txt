@@ -50,6 +50,7 @@ target_include_directories(SvarnEngine PRIVATE
     vendor/imgui-src
     vendor/imgui-src/backends
     vendor/imgui-src/examples
+    vendor/glm-src
 	vendor/spdlog-src/include
 )
 

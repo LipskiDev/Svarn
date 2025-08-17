@@ -1,24 +1,23 @@
 #include <svpch.h>
 #include <Svarn/ImGui/ImGuiLayer.h>
-#include <Svarn/Application.h>
 
 #include <imgui.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
-#include <GLFW/glfw3.h>
-#include "Svarn/Core.h"
-#include "Svarn/Events/ApplicationEvent.h"
-#include "Svarn/Events/Event.h"
-#include "Svarn/Events/KeyEvent.h"
-#include "Svarn/Events/MouseEvent.h"
 
+#include <Svarn/Application.h>
+
+// Temporary
 #include <GLFW/glfw3.h>
 #include <glad/gl.h>
+#include "Svarn/Log.h"
 
 namespace Svarn {
 
-    ImGuiKey MapGlfwToImGuiKey(int key) {
-        switch (key) {
+    // Had to copy it here from ImGui Backend, since the function is declared in
+    // the .cpp and thus not callable
+    ImGuiKey glfwToImGuiKey(int glfwKeyCode) {
+        switch (glfwKeyCode) {
             case GLFW_KEY_TAB:
                 return ImGuiKey_Tab;
             case GLFW_KEY_LEFT:
@@ -67,6 +66,10 @@ namespace Svarn {
                 return ImGuiKey_LeftBracket;
             case GLFW_KEY_BACKSLASH:
                 return ImGuiKey_Backslash;
+            case GLFW_KEY_WORLD_1:
+                return ImGuiKey_Oem102;
+            case GLFW_KEY_WORLD_2:
+                return ImGuiKey_Oem102;
             case GLFW_KEY_RIGHT_BRACKET:
                 return ImGuiKey_RightBracket;
             case GLFW_KEY_GRAVE_ACCENT:
@@ -229,6 +232,30 @@ namespace Svarn {
                 return ImGuiKey_F11;
             case GLFW_KEY_F12:
                 return ImGuiKey_F12;
+            case GLFW_KEY_F13:
+                return ImGuiKey_F13;
+            case GLFW_KEY_F14:
+                return ImGuiKey_F14;
+            case GLFW_KEY_F15:
+                return ImGuiKey_F15;
+            case GLFW_KEY_F16:
+                return ImGuiKey_F16;
+            case GLFW_KEY_F17:
+                return ImGuiKey_F17;
+            case GLFW_KEY_F18:
+                return ImGuiKey_F18;
+            case GLFW_KEY_F19:
+                return ImGuiKey_F19;
+            case GLFW_KEY_F20:
+                return ImGuiKey_F20;
+            case GLFW_KEY_F21:
+                return ImGuiKey_F21;
+            case GLFW_KEY_F22:
+                return ImGuiKey_F22;
+            case GLFW_KEY_F23:
+                return ImGuiKey_F23;
+            case GLFW_KEY_F24:
+                return ImGuiKey_F24;
             default:
                 return ImGuiKey_None;
         }
@@ -237,128 +264,77 @@ namespace Svarn {
     ImGuiLayer::ImGuiLayer() : Layer("ImGuiLayer") {}
 
     void ImGuiLayer::OnAttach() {
+        SV_CORE_TRACE("{0} Attached", m_DebugName);
+        // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
-        ImGui::StyleColorsDark();
-
         ImGuiIO& io = ImGui::GetIO();
+        (void)io;
+        io.ConfigFlags |=
+            ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+        // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable
+        // Gamepad Controls
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;  // Enable Docking
+        io.ConfigFlags |=
+            ImGuiConfigFlags_ViewportsEnable;  // Enable Multi-Viewport /
+                                               // Platform Windows
+        // io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
+        // io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
 
-        io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
+        // Setup Dear ImGui style
+        ImGui::StyleColorsDark();
+        // ImGui::StyleColorsClassic();
 
-        io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;
+        // When viewports are enabled we tweak WindowRounding/WindowBg so
+        // platform windows can look identical to regular ones.
+        ImGuiStyle& style = ImGui::GetStyle();
+        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+            style.WindowRounding = 0.0f;
+            style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+        }
 
+        Application& app = Application::Get();
+        GLFWwindow* window =
+            static_cast<GLFWwindow*>(app.GetWindow().GetNativeWindow());
+
+        // Setup Platform/Renderer bindings
+        ImGui_ImplGlfw_InitForOpenGL(window, true);
         ImGui_ImplOpenGL3_Init("#version 410");
     };
 
-    void ImGuiLayer::OnDetach() {};
-
-    void ImGuiLayer::OnEvent(Event& e) {
-        EventDispatcher dispatcher(e);
-        dispatcher.Dispatch<MouseButtonPressedEvent>(
-            SV_BIND_EVENT_FN(ImGuiLayer::OnMouseButtonPressedEvent));
-
-        dispatcher.Dispatch<MouseButtonReleasedEvent>(
-            SV_BIND_EVENT_FN(ImGuiLayer::OnMouseButtonReleasedEvent));
-
-        dispatcher.Dispatch<MouseMovedEvent>(
-            SV_BIND_EVENT_FN(ImGuiLayer::OnMouseMovedEvent));
-
-        dispatcher.Dispatch<MouseScrolledEvent>(
-            SV_BIND_EVENT_FN(ImGuiLayer::OnMouseScrolledEvent));
-
-        dispatcher.Dispatch<KeyPressedEvent>(
-            SV_BIND_EVENT_FN(ImGuiLayer::OnKeyPressedEvent));
-
-        dispatcher.Dispatch<KeyReleasedEvent>(
-            SV_BIND_EVENT_FN(ImGuiLayer::OnKeyReleasedEvent));
+    void ImGuiLayer::OnDetach() {
+        ImGui_ImplOpenGL3_Shutdown();
+        ImGui_ImplGlfw_Shutdown();
+        ImGui::DestroyContext();
     };
 
-    void ImGuiLayer::OnUpdate() {
+    void ImGuiLayer::Begin() {
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+    }
+
+    void ImGuiLayer::End() {
         ImGuiIO& io = ImGui::GetIO();
         Application& app = Application::Get();
-        io.DisplaySize =
-            ImVec2(app.GetWindow().GetWidth(), app.GetWindow().GetHeight());
+        io.DisplaySize = ImVec2((float)app.GetWindow().GetWidth(),
+                                (float)app.GetWindow().GetHeight());
 
-        float time = (float)glfwGetTime();
-        io.DeltaTime = m_Time > 0.0f ? (time - m_Time) : (1.0f / 60.0f);
-        m_Time = time;
-
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui::NewFrame();
-
-        static bool show = true;
-        ImGui::ShowDemoWindow(&show);
-
+        // Rendering
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    };
 
-    bool ImGuiLayer::OnMouseButtonPressedEvent(MouseButtonPressedEvent& e) {
-        ImGuiIO& io = ImGui::GetIO();
-        io.MouseDown[e.GetMouseButton()] = true;
-
-        return false;
+        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+            GLFWwindow* backup_current_context = glfwGetCurrentContext();
+            ImGui::UpdatePlatformWindows();
+            ImGui::RenderPlatformWindowsDefault();
+            glfwMakeContextCurrent(backup_current_context);
+        }
     }
 
-    bool ImGuiLayer::OnMouseButtonReleasedEvent(MouseButtonReleasedEvent& e) {
-        ImGuiIO& io = ImGui::GetIO();
-        io.MouseDown[e.GetMouseButton()] = false;
-
-        return false;
+    void ImGuiLayer::OnImGuiRender() {
+        static bool show = true;
+        ImGui::ShowDemoWindow(&show);
     }
-
-    bool ImGuiLayer::OnMouseMovedEvent(MouseMovedEvent& e) {
-        ImGuiIO& io = ImGui::GetIO();
-        io.MousePos = ImVec2(e.GetX(), e.GetY());
-
-        return false;
-    }
-
-    bool ImGuiLayer::OnKeyPressedEvent(KeyPressedEvent& e) {
-        ImGuiIO& io = ImGui::GetIO();
-
-        // io.AddKeyEvent(e.GetKeyCode(), true);
-        int key = e.GetKeyCode();
-        ImGuiKey imGuiKey = MapGlfwToImGuiKey(key);
-
-        io.AddKeyEvent(imGuiKey, true);
-
-        io.KeyCtrl =
-            imGuiKey == (ImGuiKey_LeftCtrl) || imGuiKey == (ImGuiKey_RightCtrl);
-
-        io.KeyShift = imGuiKey == (ImGuiKey_LeftShift) ||
-                      imGuiKey == (ImGuiKey_RightShift);
-
-        io.KeyAlt =
-            imGuiKey == (ImGuiKey_LeftAlt) || imGuiKey == (ImGuiKey_RightAlt);
-
-        SV_CORE_INFO(io.KeyAlt);
-
-        io.KeySuper = imGuiKey == (ImGuiKey_LeftSuper) ||
-                      imGuiKey == (ImGuiKey_RightSuper);
-        return false;
-    }
-
-    bool ImGuiLayer::OnKeyReleasedEvent(KeyReleasedEvent& e) {
-        ImGuiIO& io = ImGui::GetIO();
-
-        // io.AddKeyEvent(e.GetKeyCode(), true);
-        int key = e.GetKeyCode();
-        ImGuiKey imGuiKey = MapGlfwToImGuiKey(key);
-
-        io.AddKeyEvent(imGuiKey, false);
-
-        return false;
-    }
-
-    bool ImGuiLayer::OnMouseScrolledEvent(MouseScrolledEvent& e) {
-        ImGuiIO& io = ImGui::GetIO();
-
-        io.AddMouseWheelEvent(e.GetXOffset(), e.GetYOffset());
-
-        return false;
-    }
-
-    bool ImGuiLayer::OnWindowResizeEvent(WindowResizeEvent& e) {}
 
 }  // namespace Svarn

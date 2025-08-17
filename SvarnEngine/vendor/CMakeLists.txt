@@ -21,6 +21,13 @@ FetchContent_Declare(
 )
 
 FetchContent_Declare(
+	glm
+	GIT_REPOSITORY https://github.com/g-truc/glm.git
+	GIT_TAG master
+	GIT_SHALLOW		TRUE
+)
+
+FetchContent_Declare(
 	spdlog
 	GIT_REPOSITORY	https://github.com/gabime/spdlog.git
 	GIT_TAG			v1.15.1
@@ -35,16 +42,17 @@ set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES Off CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS Off CACHE BOOL "" FORCE)
 set(GLFW_INSTALL Off CACHE BOOL "" FORCE)
+set(GLM_TEST_ENABLE OFF CACHE BOOL "" FORCE)
 set(SPDLOG_USE_STD_FORMAT OFF CACHE BOOL "" FORCE)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-FetchContent_MakeAvailable(glad glfw spdlog)
+FetchContent_MakeAvailable(glad glfw glm spdlog)
 
 glad_add_library(glad STATIC API gl:core=4.6 LOCATION ${PROJECT_SOURCE_DIR}/vendor/glad-build/${TARGET})
 
 CPMAddPackage(NAME imgui
-	GITHUB_REPOSITORY ocornut/imgui
+GITHUB_REPOSITORY ocornut/imgui
 	GIT_TAG docking
 	DOWNLOAD_ONLY YES)
 if(imgui_ADDED)
@@ -56,7 +64,7 @@ if(imgui_ADDED)
 	set(IMGUI_INCLUDE_DIR ${imgui_SOURCE_DIR})
 	set(IMGUI_SOURCES ${imgui_sources} ${imgui_sources_cpp})
 
-	add_library(imgui STATIC ${IMGUI_SOURCES} ${IMGUI_HEADERS} "${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp" "${IMGUI_DIR}/backends/imgui_impl_opengl3.h" "${IMGUI_DIR}/backends/imgui_impl_opengl3_loader.h")
+  add_library(imgui STATIC ${IMGUI_SOURCES} ${IMGUI_HEADERS} "${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp" "${IMGUI_DIR}/backends/imgui_impl_opengl3.h" "${IMGUI_DIR}/backends/imgui_impl_opengl3_loader.h" "${IMGUI_DIR}/backends/imgui_impl_glfw.cpp" "${IMGUI_DIR}/backends/imgui_impl_glfw.h")
 	target_compile_definitions(imgui PRIVATE IMGUI_IMPL_OPENGL_LOADER_GLAD=1)
 	target_include_directories(imgui PUBLIC ${IMGUI_DIR} "glfw-src/include" "glad-build/include")
 	set_target_properties(imgui PROPERTIES
@@ -68,6 +76,7 @@ endif()
 
 set_target_properties(glad PROPERTIES FOLDER "Utilities/glad")
 set_target_properties(glfw PROPERTIES FOLDER "Utilities/GLFW3")
+set_target_properties(glm PROPERTIES FOLDER "Utilities")
 set_target_properties(imgui PROPERTIES FOLDER "Utilities/imgui")
 set_target_properties(spdlog PROPERTIES FOLDER "Utilities")
 #======================================
