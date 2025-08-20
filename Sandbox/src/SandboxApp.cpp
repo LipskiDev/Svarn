@@ -2,6 +2,7 @@
 
 #include "Svarn/Layer.h"
 #include <Svarn/Scene/PerspectiveCamera.h>
+#include <filesystem>
 
 using namespace Svarn;
 
@@ -53,76 +54,24 @@ class ExampleLayer : public Layer {
         squareIB.reset(IndexBuffer::Create(squareIndices, sizeof(squareIndices) / sizeof(uint32_t)));
         m_SquareVA->SetIndexBuffer(squareIB);
 
-        std::string vertexSrc = R"(
-        #version 330 core
-        layout(location = 0) in vec3 a_Position;
-        layout(location = 1) in vec4 a_Color;   
+        std::string vertexPath = "Sandbox/shaders/triangle.vs";
+        std::string fragmentPath = "Sandbox/shaders/triangle.fs";
 
-        out vec3 v_Position;
-        out vec4 v_Color;   
+        m_Shader.reset(Shader::Create(vertexPath, fragmentPath));
 
-        uniform mat4 VP;
+        std::string blueVertexPath = "Sandbox/shaders/blue.vs";
+        std::string blueFragmentPath = "Sandbox/shaders/blue.fs";
 
-        void main()
-        {
-          v_Position = a_Position;
-          v_Color = a_Color;
-          gl_Position = VP * vec4(a_Position, 1.0);
-        }
-        )";
-
-        std::string fragSrc = R"(
-          #version 330 core
-
-          layout(location = 0) out vec4 color;
-
-          in vec3 v_Position;
-          in vec4 v_Color;   
-
-          void main()
-          {
-            color = vec4(v_Position * 0.5 + 0.5, 1.0);
-            color = v_Color;
-          }
-        )";
-
-        m_Shader.reset(Shader::Create(vertexSrc, fragSrc));
-
-        std::string blueShaderVertexSrc = R"(
-			#version 330 core
-
-			layout(location = 0) in vec3 a_Position;
-
-            uniform mat4 VP;
-
-			out vec3 v_Position;
-
-			void main()
-			{
-				v_Position = a_Position;
-				gl_Position = VP * vec4(a_Position, 1.0);	
-			}
-		)";
-
-        std::string blueShaderFragmentSrc = R"(
-			#version 330 core
-
-			layout(location = 0) out vec4 color;
-
-			in vec3 v_Position;
-
-			void main()
-			{
-				color = vec4(0.2, 0.3, 0.8, 1.0);
-			}
-		)";
-
-        m_BlueShader.reset(Shader::Create(blueShaderVertexSrc, blueShaderFragmentSrc));
+        m_BlueShader.reset(Shader::Create(blueVertexPath, blueFragmentPath));
     }
 
     void OnUpdate(Timestep ts) override {
         m_Camera->OnUpdate(ts);
-        glm::vec3 cameraPosition = m_Camera->GetPosition();
+
+        if (Input::IsKeyPressed(SV_KEY_R)) {
+            m_Shader->ReloadShader();
+            m_BlueShader->ReloadShader();
+        }
 
         RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
         RenderCommand::Clear();

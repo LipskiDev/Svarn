@@ -9,12 +9,12 @@
 
 namespace Svarn {
 
-    Shader* Shader::Create(const std::string& vertexSrc, const std::string& fragmentSrc) {
+    Shader* Shader::Create(const std::string& vertexPath, const std::string& fragmentPath) {
         switch (Renderer::GetAPI()) {
             case RendererAPI::API::None:
                 SV_CORE_ASSERT(false, "RendererAPI::None currently not supported.");
             case RendererAPI::API::OpenGL:
-                return new Svarn::OpenGLShader(vertexSrc, fragmentSrc);
+                return new Svarn::OpenGLShader(vertexPath, fragmentPath);
             case RendererAPI::API::Vulkan:
                 SV_CORE_ASSERT(false, "RendererAPI::Vulkan currently not supported.");
         }

@@ -14,7 +14,9 @@ namespace Svarn {
 
         virtual void SetMat4(const std::string& name, const glm::mat4& value) = 0;
 
-        static Shader* Create(const std::string& vertexSrc, const std::string& fragmentSrc);
+        virtual void ReloadShader() = 0;
+
+        static Shader* Create(const std::string& vertexPath, const std::string& fragmentPath);
     };
 
 }  // namespace Svarn
