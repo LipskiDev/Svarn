@@ -1,19 +1,20 @@
 #pragma once
 
 #include <string>
+#include <glm/glm.hpp>
 
 namespace Svarn {
 
     class Shader {
         public:
-        Shader(const std::string& vertexSrc, const std::string& fragmentSrc);
-        ~Shader();
+        virtual ~Shader() {};
 
-        void Bind();
-        void Unbind();
+        virtual void Bind() = 0;
+        virtual void Unbind() = 0;
 
-        private:
-        uint32_t m_ShaderID;
+        virtual void SetMat4(const std::string& name, const glm::mat4& value) = 0;
+
+        static Shader* Create(const std::string& vertexSrc, const std::string& fragmentSrc);
     };
 
 }  // namespace Svarn

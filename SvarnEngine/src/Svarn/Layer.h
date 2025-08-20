@@ -2,7 +2,7 @@
 
 #include "Svarn/Core.h"
 #include "Svarn/Events/Event.h"
-#include "Svarn/Log.h"
+#include "Svarn/Timestep.h"
 
 namespace Svarn {
     class SVARN_API Layer {
@@ -12,8 +12,8 @@ namespace Svarn {
 
         virtual void OnAttach() {};
         virtual void OnDetach() {};
-        virtual void OnUpdate() {};
-        virtual void OnImGuiRender() {};
+        virtual void OnUpdate(Timestep ts) {};
+        virtual void OnImGuiRender(Timestep ts) {};
         virtual void OnEvent(Event& e) {};
 
         inline const std::string& GetName() const { return m_DebugName; }

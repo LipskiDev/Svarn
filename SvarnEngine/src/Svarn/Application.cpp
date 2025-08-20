@@ -4,6 +4,7 @@
 #include "Application.h"
 #include <Svarn/Log.h>
 #include <Svarn/Input.h>
+#include "GLFW/glfw3.h"
 #include "Svarn/Renderer/Buffer.h"
 #include "Svarn/Renderer/VertexArray.h"
 #include <Svarn/Renderer/RenderCommand.h>
@@ -49,6 +50,7 @@ namespace Svarn {
 
         m_Window = std::unique_ptr<Window>(Window::Create());
         m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
+        m_Window->SetVSync(false);
 
         m_ImGuiLayer = new ImGuiLayer();
         PushOverlay(m_ImGuiLayer);
@@ -60,17 +62,19 @@ namespace Svarn {
         while (m_Running) {
             m_Window->OnUpdate();
 
+            float time = (float)glfwGetTime();
+            Timestep ts = time - m_LastFrameTime;
+            m_LastFrameTime = time;
+
             for (Layer* layer : m_LayerStack) {
-                layer->OnUpdate();
+                layer->OnUpdate(ts);
             }
 
             m_ImGuiLayer->Begin();
             for (Layer* layer : m_LayerStack) {
-                layer->OnImGuiRender();
+                layer->OnImGuiRender(ts);
             }
             m_ImGuiLayer->End();
-
-            m_Window->OnUpdate();
         }
     }
 

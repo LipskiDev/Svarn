@@ -270,14 +270,12 @@ namespace Svarn {
         ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO();
         (void)io;
-        io.ConfigFlags |=
-            ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
         // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable
         // Gamepad Controls
-        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;  // Enable Docking
-        io.ConfigFlags |=
-            ImGuiConfigFlags_ViewportsEnable;  // Enable Multi-Viewport /
-                                               // Platform Windows
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;    // Enable Docking
+        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;  // Enable Multi-Viewport /
+                                                             // Platform Windows
         // io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
         // io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
 
@@ -294,8 +292,7 @@ namespace Svarn {
         }
 
         Application& app = Application::Get();
-        GLFWwindow* window =
-            static_cast<GLFWwindow*>(app.GetWindow().GetNativeWindow());
+        GLFWwindow* window = static_cast<GLFWwindow*>(app.GetWindow().GetNativeWindow());
 
         // Setup Platform/Renderer bindings
         ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -317,8 +314,7 @@ namespace Svarn {
     void ImGuiLayer::End() {
         ImGuiIO& io = ImGui::GetIO();
         Application& app = Application::Get();
-        io.DisplaySize = ImVec2((float)app.GetWindow().GetWidth(),
-                                (float)app.GetWindow().GetHeight());
+        io.DisplaySize = ImVec2((float)app.GetWindow().GetWidth(), (float)app.GetWindow().GetHeight());
 
         // Rendering
         ImGui::Render();
@@ -332,9 +328,6 @@ namespace Svarn {
         }
     }
 
-    void ImGuiLayer::OnImGuiRender() {
-        static bool show = true;
-        ImGui::ShowDemoWindow(&show);
-    }
+    void ImGuiLayer::OnImGuiRender(Timestep ts) { static bool show = true; }
 
 }  // namespace Svarn

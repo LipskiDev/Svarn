@@ -1,6 +1,7 @@
 #include <Svarn.h>
 
 #include "Svarn/Layer.h"
+#include <Svarn/Scene/PerspectiveCamera.h>
 
 using namespace Svarn;
 
@@ -11,8 +12,15 @@ class ExampleLayer : public Layer {
     std::shared_ptr<Shader> m_BlueShader;
     std::shared_ptr<VertexArray> m_SquareVA;
 
+    std::shared_ptr<PerspectiveCamera> m_Camera;
+
+    RendererAPIInfo apiInfo;
+
     public:
     ExampleLayer() : Layer("Example") {
+        apiInfo = Renderer::GetAPIInfo();
+        m_Camera.reset(new PerspectiveCamera(90, 16.0 / 9.0, 0.1f, 100));
+
         m_VertexArray.reset(VertexArray::Create());
 
         float vertices[3 * 7] = {-0.5f, -0.5f, 0.0f, 0.8f, 1.2f, 0.8f, 1.0f, 0.5f, -0.5f, 0.0f, 0.2f,
@@ -53,11 +61,13 @@ class ExampleLayer : public Layer {
         out vec3 v_Position;
         out vec4 v_Color;   
 
+        uniform mat4 VP;
+
         void main()
         {
           v_Position = a_Position;
           v_Color = a_Color;
-          gl_Position = vec4(a_Position, 1.0);
+          gl_Position = VP * vec4(a_Position, 1.0);
         }
         )";
 
@@ -76,19 +86,21 @@ class ExampleLayer : public Layer {
           }
         )";
 
-        m_Shader.reset(new Shader(vertexSrc, fragSrc));
+        m_Shader.reset(Shader::Create(vertexSrc, fragSrc));
 
         std::string blueShaderVertexSrc = R"(
 			#version 330 core
 
 			layout(location = 0) in vec3 a_Position;
 
+            uniform mat4 VP;
+
 			out vec3 v_Position;
 
 			void main()
 			{
 				v_Position = a_Position;
-				gl_Position = vec4(a_Position, 1.0);	
+				gl_Position = VP * vec4(a_Position, 1.0);	
 			}
 		)";
 
@@ -105,27 +117,38 @@ class ExampleLayer : public Layer {
 			}
 		)";
 
-        m_BlueShader.reset(new Shader(blueShaderVertexSrc, blueShaderFragmentSrc));
+        m_BlueShader.reset(Shader::Create(blueShaderVertexSrc, blueShaderFragmentSrc));
     }
 
-    void OnUpdate() override {
+    void OnUpdate(Timestep ts) override {
+        m_Camera->OnUpdate(ts);
+        glm::vec3 cameraPosition = m_Camera->GetPosition();
+
         RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
         RenderCommand::Clear();
 
-        Renderer::BeginScene();
+        Renderer::BeginScene(m_Camera);
 
-        m_BlueShader->Bind();
-        Renderer::Submit(m_SquareVA);
+        Renderer::Submit(m_SquareVA, m_BlueShader);
 
-        m_Shader->Bind();
-        Renderer::Submit(m_VertexArray);
+        Renderer::Submit(m_VertexArray, m_Shader);
 
         Renderer::EndScene();
     }
 
-    virtual void OnImGuiRender() override {}
+    virtual void OnImGuiRender(Timestep ts) override {
+        ImGui::Begin("Renderer");
+        {
+            ImGui::Text("API: %s", apiInfo.API.c_str());
+            ImGui::Text("FPS: %d", static_cast<int>(1 / ts.GetSeconds()));
+            ImGui::Text("Vendor: %s", apiInfo.Vendor.c_str());
+            ImGui::Text("Renderer: %s", apiInfo.Renderer.c_str());
+            ImGui::Text("Version: %s", apiInfo.Version.c_str());
+        }
+        ImGui::End();
+    }
 
-    void OnEvent(Svarn::Event& e) override {}
+    void OnEvent(Svarn::Event& e) override { m_Camera->OnEvent(e); }
 };
 
 class Sandbox : public Svarn::Application {

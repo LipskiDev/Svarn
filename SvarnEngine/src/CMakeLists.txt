@@ -8,6 +8,7 @@
     "Svarn/Application.cpp"
     "Svarn/Application.h"
     "Svarn/Input.h"
+    "Svarn/Timestep.h"
         
     "Svarn/Layer.cpp"
     "Svarn/Layer.h"
@@ -16,6 +17,10 @@
 
     "Svarn/ImGui/ImGuiLayer.cpp"
     "Svarn/ImGui/ImGuiLayer.h"
+
+    "Svarn/Scene/Camera.h"
+    "Svarn/Scene/PerspectiveCamera.cpp"
+    "Svarn/Scene/PerspectiveCamera.h"
 
     "Svarn/Log.cpp"
     "Svarn/Log.h"
@@ -51,6 +56,8 @@
     "Platform/OpenGL/OpenGLRenderingContext.h"  
     "Platform/OpenGL/OpenGLVertexArray.cpp"
     "Platform/OpenGL/OpenGLVertexArray.h"
+    "Platform/OpenGL/OpenGLShader.h"
+    "Platform/OpenGL/OpenGLShader.cpp"
 
     "Platform/Linux/LinuxInput.cpp"
     "Platform/Linux/LinuxInput.h"

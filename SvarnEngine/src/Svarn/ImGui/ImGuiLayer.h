@@ -11,7 +11,7 @@ namespace Svarn {
 
         virtual void OnAttach() override;
         virtual void OnDetach() override;
-        virtual void OnImGuiRender() override;
+        virtual void OnImGuiRender(Timestep ts) override;
 
         void Begin();
         void End();
