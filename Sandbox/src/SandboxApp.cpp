@@ -75,6 +75,7 @@ class ExampleLayer : public Layer {
         m_BlueShader.reset(Shader::Create(blueVertexPath, blueFragmentPath));
 
         m_MissingTexture.reset(Texture::Create("Sandbox/assets/textures/missing.png"));
+        m_MissingTexture->SetWrapping(TextureWrapping::ClampToEdge);
     }
 
     void OnUpdate(Timestep ts) override {

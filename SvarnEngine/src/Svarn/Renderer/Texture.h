@@ -4,9 +4,15 @@
 
 namespace Svarn {
 
+    enum class TextureFiltering { Nearest, Linear };
+
+    enum class TextureWrapping { Repeat, ClampToEdge };
+
     class Texture {
         public:
         virtual void Bind(uint32_t unit) const = 0;
+        virtual void SetFiltering(TextureFiltering minFilter, TextureFiltering magFilter) const = 0;
+        virtual void SetWrapping(TextureWrapping wrap) const = 0;
 
         static Texture* Create(std::string texturePath);
 

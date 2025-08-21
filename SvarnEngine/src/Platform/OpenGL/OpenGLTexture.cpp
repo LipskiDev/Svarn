@@ -8,6 +8,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #define STBI_NO_SIMD
 #include <stb_image/stb_image.h>
+
 namespace Svarn {
     OpenGLTexture::OpenGLTexture(std::string texturePath) {
         int width = 0;
@@ -35,6 +36,25 @@ namespace Svarn {
         ss << "texture" << unit;
         glUniform1i(glGetUniformLocation(m_RendererID, ss.str().c_str()), unit);  // sampler -> unit 0};
     }
+
+    void OpenGLTexture::SetFiltering(TextureFiltering minFilter, TextureFiltering magFilter) const {
+        glBindTexture(GL_TEXTURE_2D, m_RendererID);
+        GLenum glMin = (minFilter == TextureFiltering::Linear) ? GL_LINEAR_MIPMAP_LINEAR  // trilinear if you have mips
+                                                               : GL_NEAREST_MIPMAP_NEAREST;
+
+        GLenum glMag = (magFilter == TextureFiltering::Linear) ? GL_LINEAR : GL_NEAREST;
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, glMin);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, glMag);
+    };
+    void OpenGLTexture::SetWrapping(TextureWrapping wrap) const {
+        glBindTexture(GL_TEXTURE_2D, m_RendererID);
+
+        GLenum glWrap = (wrap == TextureWrapping::Repeat) ? GL_REPEAT : GL_CLAMP_TO_EDGE;
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, glWrap);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, glWrap);
+    };
 
     void OpenGLTexture::InvalidateImpl(std::string_view path, uint32_t width, uint32_t height, const void* data, uint32_t channels) {
         m_Path = path;

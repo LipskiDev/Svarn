@@ -7,6 +7,8 @@ namespace Svarn {
         public:
         OpenGLTexture(std::string texturePath);
         virtual void Bind(uint32_t unit) const override;
+        virtual void SetFiltering(TextureFiltering minFilter, TextureFiltering magFilter) const override;
+        virtual void SetWrapping(TextureWrapping wrap) const override;
 
         private:
         void InvalidateImpl(std::string_view path, uint32_t width, uint32_t height, const void* data, uint32_t channels);
