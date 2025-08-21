@@ -1,9 +1,9 @@
 #pragma once
 
+#include <glad/gl.h>
 #include <GLFW/glfw3.h>
 #include <Svarn/Window.h>
 #include <Svarn/Renderer/RenderingContext.h>
-#include <glad/gl.h>
 
 namespace Svarn {
 
@@ -18,9 +18,7 @@ namespace Svarn {
         inline unsigned int GetHeight() const override { return m_Data.Height; }
 
         // Window Attributes
-        inline void SetEventCallback(const EventCallbackFn &callback) override {
-            m_Data.EventCallback = callback;
-        }
+        inline void SetEventCallback(const EventCallbackFn &callback) override { m_Data.EventCallback = callback; }
         void SetVSync(bool enabled);
         bool IsVSync() const;
 

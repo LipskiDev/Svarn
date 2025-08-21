@@ -45,6 +45,8 @@
     "Svarn/Renderer/RenderingContext.h"
     "Svarn/Renderer/Shader.cpp"
     "Svarn/Renderer/Shader.h"
+    "Svarn/Renderer/Texture.cpp"
+    "Svarn/Renderer/Texture.h"
     "Svarn/Renderer/VertexArray.h"
     "Svarn/Renderer/VertexArray.cpp"
 
@@ -54,10 +56,12 @@
     "Platform/OpenGL/OpenGLRendererAPI.h"
     "Platform/OpenGL/OpenGLRenderingContext.cpp"  
     "Platform/OpenGL/OpenGLRenderingContext.h"  
-    "Platform/OpenGL/OpenGLVertexArray.cpp"
-    "Platform/OpenGL/OpenGLVertexArray.h"
     "Platform/OpenGL/OpenGLShader.h"
     "Platform/OpenGL/OpenGLShader.cpp"
+    "Platform/OpenGL/OpenGLTexture.cpp"
+    "Platform/OpenGL/OpenGLTexture.h"
+    "Platform/OpenGL/OpenGLVertexArray.cpp"
+    "Platform/OpenGL/OpenGLVertexArray.h"
 
     "Platform/Linux/LinuxInput.cpp"
     "Platform/Linux/LinuxInput.h"

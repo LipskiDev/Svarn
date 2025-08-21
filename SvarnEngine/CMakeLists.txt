@@ -52,6 +52,7 @@ target_include_directories(SvarnEngine PRIVATE
     vendor/imgui-src/examples
     vendor/glm-src
 	vendor/spdlog-src/include
+    vendor/stb_image-build/include
 )
 
 if(WIN32)
@@ -60,6 +61,7 @@ if(WIN32)
         glad
         glfw
         imgui
+        stb_image
         spdlog::spdlog
         opengl32          
     )
@@ -70,6 +72,7 @@ elseif(UNIX)
         glad
         glfw
         imgui
+        stb_image
         spdlog::spdlog
         OpenGL::GL
     )

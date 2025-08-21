@@ -37,6 +37,7 @@ set(CMAKE_CSharp_FLAGS "/langversion:8")
 set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "Utilities/cmake")
 
+
 # Build options
 option(BUILD_TESTS "Build tests" OFF)
 

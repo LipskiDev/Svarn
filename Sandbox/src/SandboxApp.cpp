@@ -1,8 +1,9 @@
 #include <Svarn.h>
 
+#include "Svarn/Renderer/Texture.h"
 #include "Svarn/Layer.h"
+#include "Svarn/Renderer/Buffer.h"
 #include <Svarn/Scene/PerspectiveCamera.h>
-#include <filesystem>
 
 using namespace Svarn;
 
@@ -14,6 +15,8 @@ class ExampleLayer : public Layer {
     std::shared_ptr<VertexArray> m_SquareVA;
 
     std::shared_ptr<PerspectiveCamera> m_Camera;
+
+    std::shared_ptr<Texture> m_MissingTexture;
 
     RendererAPIInfo apiInfo;
 
@@ -42,10 +45,17 @@ class ExampleLayer : public Layer {
 
         m_SquareVA.reset(VertexArray::Create());
 
-        float squareVertices[3 * 4] = {-0.75f, -0.75f, 0.0f, 0.75f, -0.75f, 0.0f, 0.75f, 0.75f, 0.0f, -0.75f, 0.75f, 0.0f};
+        float squareVertices[5 * 4] = {
+            // pos                 // uv
+            -0.75f, -0.75f, 0.0f, 0.0f, 0.0f,  // bottom-left
+            0.75f,  -0.75f, 0.0f, 1.0f, 0.0f,  // bottom-right
+            0.75f,  0.75f,  0.0f, 1.0f, 1.0f,  // top-right
+            -0.75f, 0.75f,  0.0f, 0.0f, 1.0f   // top-left
+        };
+
         std::shared_ptr<VertexBuffer> squareVB;
         squareVB.reset(VertexBuffer::Create(squareVertices, sizeof(squareVertices)));
-        squareVB->SetLayout({{ShaderDataType::Float3, "a_Position"}});
+        squareVB->SetLayout({{ShaderDataType::Float3, "a_Position"}, {ShaderDataType::Float2, "a_TexCoord"}});
 
         m_SquareVA->AddVertexBuffer(squareVB);
         uint32_t squareIndices[6] = {0, 1, 2, 2, 3, 0};
@@ -63,6 +73,8 @@ class ExampleLayer : public Layer {
         std::string blueFragmentPath = "Sandbox/shaders/blue.fs";
 
         m_BlueShader.reset(Shader::Create(blueVertexPath, blueFragmentPath));
+
+        m_MissingTexture.reset(Texture::Create("Sandbox/assets/textures/missing.png"));
     }
 
     void OnUpdate(Timestep ts) override {
@@ -75,6 +87,8 @@ class ExampleLayer : public Layer {
 
         RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
         RenderCommand::Clear();
+
+        m_MissingTexture->Bind(0);
 
         Renderer::BeginScene(m_Camera);
 

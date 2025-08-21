@@ -11,13 +11,9 @@ namespace Svarn {
 
     static bool s_GLFWInitialized = false;
 
-    static void GLFWErrorCallback(int error, const char *description) {
-        SV_CORE_ERROR("GLFW Error ({0}): {1}", error, description);
-    }
+    static void GLFWErrorCallback(int error, const char *description) { SV_CORE_ERROR("GLFW Error ({0}): {1}", error, description); }
 
-    Window *Window::Create(const WindowProps &props) {
-        return new LinuxWindow(props);
-    }
+    Window *Window::Create(const WindowProps &props) { return new LinuxWindow(props); }
 
     LinuxWindow::LinuxWindow(const WindowProps &props) { Init(props); }
 
@@ -45,8 +41,7 @@ namespace Svarn {
         m_Data.Width = props.Width;
         m_Data.Height = props.Height;
 
-        SV_CORE_INFO("Creating window {0} ({1}x{2})", props.Title, props.Width,
-                     props.Height);
+        SV_CORE_INFO("Creating window {0} ({1}x{2})", props.Title, props.Width, props.Height);
 
         if (!s_GLFWInitialized) {
             glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
@@ -56,16 +51,18 @@ namespace Svarn {
             s_GLFWInitialized = true;
         }
 
-        m_Window = glfwCreateWindow((int)props.Width, (int)props.Height,
-                                    m_Data.Title.c_str(), nullptr, nullptr);
+        glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);  // or 4,5
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        m_Window = glfwCreateWindow((int)props.Width, (int)props.Height, m_Data.Title.c_str(), nullptr, nullptr);
         m_Context = new OpenGLRenderingContext(m_Window);
         m_Context->Init();
 
         glfwSetWindowUserPointer(m_Window, &m_Data);
         SetVSync(true);
         // Set GLFW callbacks
-        glfwSetWindowSizeCallback(m_Window, [](GLFWwindow *window, int width,
-                                               int height) {
+        glfwSetWindowSizeCallback(m_Window, [](GLFWwindow *window, int width, int height) {
             WindowData &data = *(WindowData *)glfwGetWindowUserPointer(window);
 
             WindowResizeEvent event(width, height);
@@ -80,8 +77,7 @@ namespace Svarn {
             data.EventCallback(event);
         });
 
-        glfwSetKeyCallback(m_Window, [](GLFWwindow *window, int key,
-                                        int scancode, int action, int mods) {
+        glfwSetKeyCallback(m_Window, [](GLFWwindow *window, int key, int scancode, int action, int mods) {
             WindowData &data = *(WindowData *)glfwGetWindowUserPointer(window);
             switch (action) {
                 case GLFW_PRESS: {
@@ -102,8 +98,7 @@ namespace Svarn {
             }
         });
 
-        glfwSetMouseButtonCallback(m_Window, [](GLFWwindow *window, int button,
-                                                int action, int mods) {
+        glfwSetMouseButtonCallback(m_Window, [](GLFWwindow *window, int button, int action, int mods) {
             WindowData &data = *(WindowData *)glfwGetWindowUserPointer(window);
             switch (action) {
                 case GLFW_PRESS: {
@@ -117,16 +112,13 @@ namespace Svarn {
             }
         });
 
-        glfwSetScrollCallback(m_Window, [](GLFWwindow *window, double xOffset,
-                                           double yOffset) {
+        glfwSetScrollCallback(m_Window, [](GLFWwindow *window, double xOffset, double yOffset) {
             WindowData &data = *(WindowData *)glfwGetWindowUserPointer(window);
             MouseScrolledEvent event((float)xOffset, (float)yOffset);
             data.EventCallback(event);
         });
 
-        glfwSetCursorPosCallback(m_Window, [](GLFWwindow *window,
-                                              double xPosition,
-                                              double yPosition) {
+        glfwSetCursorPosCallback(m_Window, [](GLFWwindow *window, double xPosition, double yPosition) {
             WindowData &data = *(WindowData *)glfwGetWindowUserPointer(window);
             MouseMovedEvent event((float)xPosition, (float)yPosition);
             data.EventCallback(event);

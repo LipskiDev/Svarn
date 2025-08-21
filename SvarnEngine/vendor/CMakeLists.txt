@@ -1,6 +1,8 @@
 include(FetchContent)
 set(FETCHCONTENT_QUIET off)
 set(FETCHCONTENT_BASE_DIR ${PROJECT_SOURCE_DIR}/vendor CACHE PATH "Missing description." FORCE)
+set(FETCHCONTENT_UPDATES_DISCONNECTED ON CACHE BOOL "Disable update of FetchContent" FORCE)
+
 
 message(STATUS "Downloading third party libraries using CMake's FetchContent and CPM")
 
@@ -50,6 +52,16 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 FetchContent_MakeAvailable(glad glfw glm spdlog)
 
 glad_add_library(glad STATIC API gl:core=4.6 LOCATION ${PROJECT_SOURCE_DIR}/vendor/glad-build/${TARGET})
+
+FetchContent_Declare(stb_image
+	GIT_REPOSITORY https://github.com/nothings/stb.git
+	GIT_TAG master
+	CONFIGURE_COMMAND ""
+	BUILD_COMMAND "")
+FetchContent_MakeAvailable(stb_image)
+add_library(stb_image INTERFACE)
+file(COPY ${stb_image_SOURCE_DIR}/stb_image.h DESTINATION "${PROJECT_SOURCE_DIR}/vendor/stb_image-build/include/stb_image")
+set(STBIMAGE_INSTALL_DIR "${PROJECT_SOURCE_DIR}/vendor/stb_image-build")
 
 CPMAddPackage(NAME imgui
 GITHUB_REPOSITORY ocornut/imgui
