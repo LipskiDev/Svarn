@@ -45,7 +45,8 @@ target_compile_definitions(SvarnEngine PRIVATE SV_BUILD_DLL)
 
 
 target_include_directories(SvarnEngine PRIVATE
-	src
+	src	
+    vendor/assimp-src/include
 	vendor/glfw-src/include
     vendor/imgui-src
     vendor/imgui-src/backends
@@ -58,6 +59,7 @@ target_include_directories(SvarnEngine PRIVATE
 if(WIN32)
     target_link_libraries(
         SvarnEngine
+        assimp
         glad
         glfw
         imgui
@@ -69,11 +71,13 @@ elseif(UNIX)
     find_package(OpenGL REQUIRED)
     target_link_libraries(
         SvarnEngine
+        assimp
         glad
         glfw
         imgui
         stb_image
         spdlog::spdlog
         OpenGL::GL
+        png_shared
     )
 endif()

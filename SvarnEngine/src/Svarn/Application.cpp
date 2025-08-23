@@ -5,44 +5,12 @@
 #include <Svarn/Log.h>
 #include <Svarn/Input.h>
 #include "GLFW/glfw3.h"
-#include "Svarn/Renderer/Buffer.h"
-#include "Svarn/Renderer/VertexArray.h"
 #include <Svarn/Renderer/RenderCommand.h>
 #include <Svarn/Renderer/Renderer.h>
 
 namespace Svarn {
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
     Application* Application::s_Instance = nullptr;
-
-    static GLenum ShaderDataTypeToOpenGLBaseType(ShaderDataType type) {
-        switch (type) {
-            case Svarn::ShaderDataType::Float:
-                return GL_FLOAT;
-            case Svarn::ShaderDataType::Float2:
-                return GL_FLOAT;
-            case Svarn::ShaderDataType::Float3:
-                return GL_FLOAT;
-            case Svarn::ShaderDataType::Float4:
-                return GL_FLOAT;
-            case Svarn::ShaderDataType::Mat3:
-                return GL_FLOAT;
-            case Svarn::ShaderDataType::Mat4:
-                return GL_FLOAT;
-            case Svarn::ShaderDataType::Int:
-                return GL_INT;
-            case Svarn::ShaderDataType::Int2:
-                return GL_INT;
-            case Svarn::ShaderDataType::Int3:
-                return GL_INT;
-            case Svarn::ShaderDataType::Int4:
-                return GL_INT;
-            case Svarn::ShaderDataType::Bool:
-                return GL_BOOL;
-        }
-
-        SV_CORE_ASSERT(false, "Unknown ShaderDataType!");
-        return 0;
-    }
 
     Application::Application() {
         SV_CORE_ASSERT(!s_Instance, "Application already exists.");

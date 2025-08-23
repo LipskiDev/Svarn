@@ -128,7 +128,7 @@ namespace Svarn {
         virtual const BufferLayout& GetLayout() const = 0;
         virtual void SetLayout(const BufferLayout& layout) = 0;
 
-        static VertexBuffer* Create(float* vertices, uint32_t size);
+        static VertexBuffer* Create(const float* vertices, uint32_t size);
     };
 
     class IndexBuffer {
@@ -140,7 +140,7 @@ namespace Svarn {
 
         virtual uint32_t GetCount() const = 0;
 
-        static IndexBuffer* Create(uint32_t* indices, uint32_t size);
+        static IndexBuffer* Create(const uint32_t* indices, uint32_t size);
     };
 
 }  // namespace Svarn

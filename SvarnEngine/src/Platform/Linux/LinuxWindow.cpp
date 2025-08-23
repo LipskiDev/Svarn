@@ -1,3 +1,4 @@
+#include "GLFW/glfw3.h"
 #include "svpch.h"
 
 #include "LinuxWindow.h"
@@ -56,6 +57,7 @@ namespace Svarn {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         m_Window = glfwCreateWindow((int)props.Width, (int)props.Height, m_Data.Title.c_str(), nullptr, nullptr);
+        glfwSetWindowAttrib(m_Window, GLFW_RESIZABLE, GL_FALSE);
         m_Context = new OpenGLRenderingContext(m_Window);
         m_Context->Init();
 

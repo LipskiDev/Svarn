@@ -5,7 +5,7 @@
 
 namespace Svarn {
 
-    VertexBuffer* VertexBuffer::Create(float* vertices, uint32_t size) {
+    VertexBuffer* VertexBuffer::Create(const float* vertices, uint32_t size) {
         switch (Renderer::GetAPI()) {
             case RendererAPI::API::None:
                 SV_CORE_ASSERT(false, "RendererAPI::None currently not supported.");
@@ -19,7 +19,7 @@ namespace Svarn {
         return nullptr;
     }
 
-    IndexBuffer* IndexBuffer::Create(uint32_t* vertices, uint32_t count) {
+    IndexBuffer* IndexBuffer::Create(const uint32_t* vertices, uint32_t count) {
         switch (Renderer::GetAPI()) {
             case RendererAPI::API::None:
                 SV_CORE_ASSERT(false, "RendererAPI::None currently not supported.");

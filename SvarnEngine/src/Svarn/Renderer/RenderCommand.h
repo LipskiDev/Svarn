@@ -10,7 +10,7 @@ namespace Svarn {
 
         inline static void Clear() { s_RendererAPI->Clear(); }
 
-        inline static void DrawIndexed(std::shared_ptr<VertexArray>& vertexArray) { s_RendererAPI->DrawIndexed(vertexArray); }
+        inline static void DrawIndexed(const std::shared_ptr<VertexArray>& vertexArray) { s_RendererAPI->DrawIndexed(vertexArray); }
 
         inline static RendererAPIInfo GetAPIInfo() { return s_RendererAPI->GetRendererAPIInfo(); }
 

@@ -1,9 +1,13 @@
 #include <Svarn.h>
 
+#include "Svarn/Application.h"
+#include "Svarn/Renderer/Mesh.h"
 #include "Svarn/Renderer/Texture.h"
 #include "Svarn/Layer.h"
 #include "Svarn/Renderer/Buffer.h"
 #include <Svarn/Scene/PerspectiveCamera.h>
+#include <glm/glm.hpp>
+#include <glm/ext/matrix_transform.hpp>
 
 using namespace Svarn;
 
@@ -18,12 +22,20 @@ class ExampleLayer : public Layer {
 
     std::shared_ptr<Texture> m_MissingTexture;
 
+    std::shared_ptr<Mesh> m_QuadMesh;
+
+    std::shared_ptr<Model> m_Cerberus;
+    std::shared_ptr<Texture> m_CerberusAlbedo;
+
+    std::shared_ptr<Texture> m_RedTexture;
+
     RendererAPIInfo apiInfo;
 
     public:
     ExampleLayer() : Layer("Example") {
         apiInfo = Renderer::GetAPIInfo();
-        m_Camera.reset(new PerspectiveCamera(90, 16.0 / 9.0, 0.1f, 100));
+
+        m_Camera.reset(new PerspectiveCamera(90, 16.0 / 9.0, 0.1f, 10000));
 
         m_VertexArray.reset(VertexArray::Create());
 
@@ -43,26 +55,17 @@ class ExampleLayer : public Layer {
         indexBuffer.reset(IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
         m_VertexArray->SetIndexBuffer(indexBuffer);
 
-        m_SquareVA.reset(VertexArray::Create());
+        const std::vector<Vertex> squareVertices = {
+            {glm::vec3(-0.75f, -0.75f, 0.0f), glm::vec3(0.0, 0.0, 0.0), glm::vec2(0.0f, 0.0f)},
+            {glm::vec3(0.75f, -0.75f, 0.0f), glm::vec3(0.0, 0.0, 0.0), glm::vec2(1.0f, 0.0f)},
+            {glm::vec3(0.75f, 0.75f, 0.0f), glm::vec3(0.0, 0.0, 0.0), glm::vec2(1.0f, 1.0f)},
+            {glm::vec3(-0.75f, 0.75f, 0.0f), glm::vec3(0.0, 0.0, 0.0), glm::vec2(0.0f, 1.0f)},
 
-        float squareVertices[5 * 4] = {
-            // pos                 // uv
-            -0.75f, -0.75f, 0.0f, 0.0f, 0.0f,  // bottom-left
-            0.75f,  -0.75f, 0.0f, 1.0f, 0.0f,  // bottom-right
-            0.75f,  0.75f,  0.0f, 1.0f, 1.0f,  // top-right
-            -0.75f, 0.75f,  0.0f, 0.0f, 1.0f   // top-left
         };
 
-        std::shared_ptr<VertexBuffer> squareVB;
-        squareVB.reset(VertexBuffer::Create(squareVertices, sizeof(squareVertices)));
-        squareVB->SetLayout({{ShaderDataType::Float3, "a_Position"}, {ShaderDataType::Float2, "a_TexCoord"}});
+        std::vector<uint32_t> squareIndices = {0, 1, 2, 2, 3, 0};
 
-        m_SquareVA->AddVertexBuffer(squareVB);
-        uint32_t squareIndices[6] = {0, 1, 2, 2, 3, 0};
-
-        std::shared_ptr<IndexBuffer> squareIB;
-        squareIB.reset(IndexBuffer::Create(squareIndices, sizeof(squareIndices) / sizeof(uint32_t)));
-        m_SquareVA->SetIndexBuffer(squareIB);
+        m_QuadMesh.reset(Mesh::Create(squareVertices, squareIndices));
 
         std::string vertexPath = "Sandbox/shaders/triangle.vs";
         std::string fragmentPath = "Sandbox/shaders/triangle.fs";
@@ -76,6 +79,28 @@ class ExampleLayer : public Layer {
 
         m_MissingTexture.reset(Texture::Create("Sandbox/assets/textures/missing.png"));
         m_MissingTexture->SetWrapping(TextureWrapping::ClampToEdge);
+
+        m_Cerberus.reset(Model::Create("Sandbox/assets/models/Cerberus_LP.FBX"));
+        m_CerberusAlbedo.reset(Texture::Create("Sandbox/assets/textures/Cerberus_A.tga"));
+
+        TextureSpecification spec;
+        spec.height = Application::Get().GetWindow().GetHeight();
+        spec.width = Application::Get().GetWindow().GetWidth();
+        m_RedTexture.reset(Texture::Create(spec));
+
+        std::vector<uint8_t> pixels(4096 * 4096 * 4, 255);  // solid white
+        for (uint32_t y = 0; y < spec.height; y++) {
+            for (uint32_t x = 0; x < spec.width; x++) {
+                bool checker = ((x / 32) % 2) ^ ((y / 32) % 2);  // 32px squares
+                int idx = (y * spec.width + x) * 4;
+                pixels[idx + 0] = checker ? 255 : 0;  // R
+                pixels[idx + 1] = checker ? 255 : 0;  // G
+                pixels[idx + 2] = checker ? 255 : 0;  // B
+                pixels[idx + 3] = 255;                // A
+            }
+        }
+
+        m_RedTexture->SetData(pixels.data(), 0, 0);
     }
 
     void OnUpdate(Timestep ts) override {
@@ -89,13 +114,14 @@ class ExampleLayer : public Layer {
         RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
         RenderCommand::Clear();
 
-        m_MissingTexture->Bind(0);
-
         Renderer::BeginScene(m_Camera);
+        // m_CerberusAlbedo->Bind(0);
 
-        Renderer::Submit(m_SquareVA, m_BlueShader);
+        m_RedTexture->Bind(0);
+        Renderer::Submit(m_Cerberus, m_BlueShader);
 
-        Renderer::Submit(m_VertexArray, m_Shader);
+        // Renderer::Submit(m_QuadMesh, m_BlueShader);
+        // Renderer::Submit(m_VertexArray, m_Shader);
 
         Renderer::EndScene();
     }

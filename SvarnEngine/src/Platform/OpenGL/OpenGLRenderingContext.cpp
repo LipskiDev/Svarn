@@ -17,6 +17,10 @@ namespace Svarn {
         glfwMakeContextCurrent(m_WindowHandle);
         int success = gladLoadGL(glfwGetProcAddress);
         SV_CORE_ASSERT(success, "Failed to initialize GLAD!");
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+        glDepthMask(GL_TRUE);
+        glClearDepth(1.0);
     }
 
     void OpenGLRenderingContext::SwapBuffers() { glfwSwapBuffers(m_WindowHandle); }

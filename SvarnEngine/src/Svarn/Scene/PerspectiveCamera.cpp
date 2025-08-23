@@ -28,7 +28,7 @@ namespace Svarn {
         glm::vec3 up = glm::rotate(m_Rotation, glm::vec3(0.0f, 1.0f, 0.0f));
         glm::vec3 right = glm::rotate(m_Rotation, glm::vec3(1.0f, 0.0f, 0.0f));
 
-        float speed = 4;
+        float speed = 100;
         if (Input::IsKeyPressed(SV_KEY_W)) {
             m_Position += ts.GetSeconds() * forward * speed;
         }
@@ -59,30 +59,34 @@ namespace Svarn {
     bool PerspectiveCamera::RotateCamera(MouseMovedEvent& event) {
         auto [x, y] = Input::GetMousePosition();
 
-        if (m_FirstMouse) {
+        if (Input::IsMouseButtonPressed(0)) {
+            if (m_FirstMouse) {
+                m_LastX = x;
+                m_LastY = y;
+                m_FirstMouse = false;
+            }
+
+            float xoffset = x - m_LastX;
+            float yoffset = y - m_LastY;
+
             m_LastX = x;
             m_LastY = y;
-            m_FirstMouse = false;
+
+            m_Yaw -= xoffset;
+            m_Pitch -= yoffset;
+
+            if (m_Pitch > 89.0f) m_Pitch = 89.0f;
+            if (m_Pitch < -89.0f) m_Pitch = -89.0f;
+
+            glm::quat qPitch = glm::angleAxis(glm::radians(m_Pitch), glm::vec3(1, 0, 0));
+            glm::quat qYaw = glm::angleAxis(glm::radians(m_Yaw), glm::vec3(0, 1, 0));
+
+            m_Rotation = glm::normalize(qYaw * qPitch);
+
+            UpdateCamera();
+        } else {
+            m_FirstMouse = true;
         }
-
-        float xoffset = x - m_LastX;
-        float yoffset = y - m_LastY;
-
-        m_LastX = x;
-        m_LastY = y;
-
-        m_Yaw -= xoffset;
-        m_Pitch -= yoffset;
-
-        if (m_Pitch > 89.0f) m_Pitch = 89.0f;
-        if (m_Pitch < -89.0f) m_Pitch = -89.0f;
-
-        glm::quat qPitch = glm::angleAxis(glm::radians(m_Pitch), glm::vec3(1, 0, 0));
-        glm::quat qYaw = glm::angleAxis(glm::radians(m_Yaw), glm::vec3(0, 1, 0));
-
-        m_Rotation = glm::normalize(qYaw * qPitch);
-
-        UpdateCamera();
 
         return false;
     }
