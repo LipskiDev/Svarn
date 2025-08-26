@@ -10,36 +10,58 @@
 
 namespace Svarn {
 
+    glm::mat4 m_ViewMatrix;
+    glm::mat4 m_ProjectionMatrix;
     glm::mat4 m_VP;
+    glm::vec3 m_CameraPosition;
 
-    void Renderer::BeginScene(const std::shared_ptr<Camera>& camera) { m_VP = camera->GetViewProjection(); }
+    void Renderer::BeginScene(const std::shared_ptr<Camera>& camera) {
+        m_ViewMatrix = camera->GetViewMatrix();
+        m_ProjectionMatrix = camera->GetViewMatrix();
+        m_VP = camera->GetViewProjection();
+        m_CameraPosition = camera->GetPosition();
+    }
 
     void Renderer::EndScene() {}
 
     void Renderer::Submit(std::shared_ptr<VertexArray>& vertexArray, std::shared_ptr<Shader>& shader) {
         shader->Bind();
         vertexArray->Bind();
+        shader->SetMat4("modelMatrix", glm::mat4(1.0));
+        shader->SetMat4("viewMatrix", m_ViewMatrix);
+        shader->SetMat4("projectionMatrix", m_ProjectionMatrix);
         shader->SetMat4("VP", m_VP);
+        shader->SetVec3("u_CameraPosition", m_CameraPosition);
+
         RenderCommand::DrawIndexed(vertexArray);
     }
 
     void Renderer::Submit(std::shared_ptr<Mesh>& mesh, std::shared_ptr<Shader>& shader) {
         shader->Bind();
         mesh->GetVertexArray()->Bind();
+        shader->SetMat4("modelMatrix", glm::mat4(1.0));
+        shader->SetMat4("viewMatrix", m_ViewMatrix);
+        shader->SetMat4("projectionMatrix", m_ProjectionMatrix);
         shader->SetMat4("VP", m_VP);
+        shader->SetVec3("u_CameraPosition", m_CameraPosition);
+
         RenderCommand::DrawIndexed(mesh->GetVertexArray());
     }
 
     void Renderer::Submit(std::shared_ptr<Model>& model, std::shared_ptr<Shader>& shader) {
         shader->Bind();
         auto meshes = model->GetAllMeshes();
-        shader->SetMat4("VP", m_VP);
+
         glm::mat4 modelMatrix(1.0f);
         modelMatrix = glm::rotate(modelMatrix, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-        shader->SetMat4("M", modelMatrix);
+        shader->SetMat4("modelMatrix", modelMatrix);
+        shader->SetMat4("viewMatrix", m_ViewMatrix);
+        shader->SetMat4("projectionMatrix", m_ProjectionMatrix);
+        shader->SetMat4("VP", m_VP);
+        shader->SetVec3("u_CameraPosition", m_CameraPosition);
 
         for (auto& mesh : meshes) {
-            Submit(mesh, shader);
+            RenderCommand::DrawIndexed(mesh->GetVertexArray());
         }
     }
 }  // namespace Svarn

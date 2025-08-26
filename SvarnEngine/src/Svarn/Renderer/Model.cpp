@@ -4,6 +4,7 @@
 
 #include <assimp/Importer.hpp>
 #include <memory>
+#include "Svarn/Log.h"
 #include <assimp/postprocess.h>
 
 namespace Svarn {
@@ -16,7 +17,9 @@ namespace Svarn {
     void Model::LoadModel(const std::string& path) {
         Assimp::Importer importer;
 
-        const ::aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs);
+        const ::aiScene* scene =
+            importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace | aiProcess_ImproveCacheLocality |
+                                        aiProcess_JoinIdenticalVertices | aiProcess_LimitBoneWeights | aiProcess_SortByPType);
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
             throw std::runtime_error("Assimp error: " + std::string(importer.GetErrorString()));
         }
@@ -54,6 +57,14 @@ namespace Svarn {
                 v.uv = {mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y};
             } else {
                 v.uv = {0.0f, 0.0f};
+            }
+
+            if (mesh->HasTangentsAndBitangents()) {
+                v.tangent = {mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z, 1};
+                v.bitangent = {mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z, 1};
+            } else {
+                v.tangent = {0.0f, 0.0f, 0.0f, 0.0f};
+                v.bitangent = {0.0f, 0.0f, 0.0f, 0.0f};
             }
 
             vertices.push_back(v);

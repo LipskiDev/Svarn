@@ -27,6 +27,11 @@ namespace Svarn {
         glUniformMatrix4fv(uniformLocation, 1, GL_FALSE, glm::value_ptr(value));
     };
 
+    void OpenGLShader::SetVec3(const std::string& uniformName, const glm::vec3& value) {
+        GLint uniformLocation = glGetUniformLocation(m_ShaderID, uniformName.c_str());
+        glUniform3f(uniformLocation, value.x, value.y, value.z);
+    };
+
     GLuint OpenGLShader::CompileVertexShader(std::string vertexPath) {
         std::string vertexSrc = ReadFile(vertexPath);
 

@@ -10,7 +10,11 @@ namespace Svarn {
 
         m_VBO.reset(VertexBuffer::Create(reinterpret_cast<const float*>(vertices.data()), vertices.size() * sizeof(Vertex)));
 
-        m_VBO->SetLayout({{ShaderDataType::Float3, "a_Position"}, {ShaderDataType::Float3, "a_Normal"}, {ShaderDataType::Float2, "a_TexCoord"}});
+        m_VBO->SetLayout({{ShaderDataType::Float3, "a_Position"},
+                          {ShaderDataType::Float3, "a_Normal"},
+                          {ShaderDataType::Float2, "a_TexCoord"},
+                          {ShaderDataType::Float4, "a_Tangent"},
+                          {ShaderDataType::Float4, "a_Bitangent"}});
         m_VAO->AddVertexBuffer(m_VBO);
 
         m_IBO.reset(IndexBuffer::Create(indices.data(), indices.size()));

@@ -13,6 +13,7 @@ namespace Svarn {
         virtual void Unbind() = 0;
 
         virtual void SetMat4(const std::string& name, const glm::mat4& value) = 0;
+        virtual void SetVec3(const std::string& name, const glm::vec3& value) = 0;
 
         virtual void ReloadShader() = 0;
 

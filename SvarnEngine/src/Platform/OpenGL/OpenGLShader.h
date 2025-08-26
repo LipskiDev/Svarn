@@ -12,6 +12,7 @@ namespace Svarn {
         virtual void Unbind() override;
 
         virtual void SetMat4(const std::string& uniformName, const glm::mat4& value) override;
+        virtual void SetVec3(const std::string& uniformName, const glm::vec3& value) override;
 
         virtual void ReloadShader() override;
 
