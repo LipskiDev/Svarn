@@ -1,6 +1,8 @@
 #include <svpch.h>
 #include <Platform/OpenGL/OpenGLShader.h>
 #include <sys/types.h>
+#include "Svarn/Core.h"
+#include "Svarn/Renderer/Shader.h"
 #include "glad/gl.h"
 #include "glm/gtc/type_ptr.hpp"
 
@@ -21,6 +23,20 @@ namespace Svarn {
     OpenGLShader::~OpenGLShader() { glDeleteShader(m_ShaderID); };
 
     void OpenGLShader::Attach(ShaderStage stage, const std::string& path) {
+        if (stage == ShaderStage::Compute) {
+            if (m_Stages.test(0) || m_Stages.test(1) || m_Stages.test(2) || m_Stages.test(3) || m_Stages.test(4)) {
+                SV_ASSERT(false, "Can't attach Compute Shader to Graphical Shader Pipeline.");
+                return;
+            }
+            m_IsCompute = true;
+        } else {
+            if (IsComputeShader()) {
+                SV_ASSERT(false, "Can't attach Graphical Shader to Computer Shader Pipeline");
+                return;
+            }
+        }
+
+        m_Stages.set(int(stage), 1);
         m_ShaderPaths[stage] = path;
         m_ShaderIDs[stage] = CompileShader(stage, path);
     }
@@ -62,7 +78,7 @@ namespace Svarn {
     void OpenGLShader::Bind() { glUseProgram(m_ShaderID); };
     void OpenGLShader::Unbind() { glDeleteProgram(m_ShaderID); };
 
-    void OpenGLShader::Dispatch(uint32_t groupsX, uint32_t groupsY, uint32_t groupsZ) {}
+    void OpenGLShader::Dispatch(uint32_t groupsX, uint32_t groupsY, uint32_t groupsZ) { glDispatchCompute(groupsX, groupsY, groupsZ); }
 
     void OpenGLShader::SetMat4(const std::string& uniformName, const glm::mat4& value) {
         GLint uniformLocation = glGetUniformLocation(m_ShaderID, uniformName.c_str());

@@ -19,7 +19,10 @@ class ExampleLayer : public Layer {
     std::shared_ptr<Texture> m_CerberusRoughness;
     std::shared_ptr<Texture> m_CerberusMetallic;
 
+    std::shared_ptr<Texture> m_EquirectEnvironmentTexture;
+
     std::shared_ptr<Shader> m_CerberusShader;
+    std::shared_ptr<Shader> m_EquirectToCubeShader;
 
     RendererAPIInfo apiInfo;
 
@@ -42,11 +45,23 @@ class ExampleLayer : public Layer {
         m_CerberusShader->Attach(ShaderStage::Fragment, "Sandbox/shaders/cerberus.fs");
         m_CerberusShader->Link();
 
-        glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &envTextureEquirect);
-        glTextureStorage2D(envTextureEquirect, 1, GL_RGBA, 1024, 1024);
-        glTextureParameteri(envTextureEquirect, GL_TEXTURE_MIN_FILTER, 1 > 1 ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
-        glTextureParameteri(envTextureEquirect, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTextureParameterf(envTextureEquirect, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1);
+        glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &envTextureUnfiltered);
+        glTextureStorage2D(envTextureUnfiltered, 1, GL_RGBA16F, 1024, 1024);
+        glTextureParameteri(envTextureUnfiltered, GL_TEXTURE_MIN_FILTER, 1 > 1 ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
+        glTextureParameteri(envTextureUnfiltered, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTextureParameterf(envTextureUnfiltered, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1);
+
+        m_EquirectToCubeShader.reset(Shader::Create());
+        m_EquirectToCubeShader->Attach(ShaderStage::Compute, "Sandbox/shaders/equirectToCube.cs");
+        m_EquirectToCubeShader->Link();
+
+        m_EquirectEnvironmentTexture.reset(Texture::Create("Sandbox/assets/textures/meadow.hdr"));
+
+        m_EquirectToCubeShader->Bind();
+        m_EquirectEnvironmentTexture->Bind(0);
+
+        glBindImageTexture(0, envTextureUnfiltered, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA16F);
+        m_EquirectToCubeShader->Dispatch(1024 / 32, 1024 / 32, 6);
     }
 
     void OnUpdate(Timestep ts) override {
