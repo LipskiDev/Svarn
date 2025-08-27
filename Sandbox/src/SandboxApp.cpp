@@ -1,9 +1,9 @@
+#include <glad/gl.h>
 #include <Svarn.h>
 
 #include "Svarn/Application.h"
 #include "Svarn/Renderer/Texture.h"
 #include "Svarn/Layer.h"
-#include <glad/gl.h>
 #include <Svarn/Scene/PerspectiveCamera.h>
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_transform.hpp>
@@ -37,7 +37,10 @@ class ExampleLayer : public Layer {
         m_CerberusRoughness.reset(Texture::Create("Sandbox/assets/textures/Cerberus_R.tga"));
         m_CerberusMetallic.reset(Texture::Create("Sandbox/assets/textures/Cerberus_M.tga"));
 
-        m_CerberusShader.reset(Shader::Create("Sandbox/shaders/cerberus.vs", "Sandbox/shaders/cerberus.fs"));
+        m_CerberusShader.reset(Shader::Create());
+        m_CerberusShader->Attach(ShaderStage::Vertex, "Sandbox/shaders/cerberus.vs");
+        m_CerberusShader->Attach(ShaderStage::Fragment, "Sandbox/shaders/cerberus.fs");
+        m_CerberusShader->Link();
 
         glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &envTextureEquirect);
         glTextureStorage2D(envTextureEquirect, 1, GL_RGBA, 1024, 1024);
