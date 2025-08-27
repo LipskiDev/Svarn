@@ -2,8 +2,29 @@
 
 #include <string>
 #include <glm/glm.hpp>
+#include "glad/gl.h"
 
 namespace Svarn {
+
+    enum class ShaderStage { Vertex, Fragment, Geometry, TessControl, TessEvaluation, Compute };
+
+    static GLenum toGLenum(ShaderStage s) {
+        switch (s) {
+            case ShaderStage::Vertex:
+                return GL_VERTEX_SHADER;
+            case ShaderStage::Fragment:
+                return GL_FRAGMENT_SHADER;
+            case ShaderStage::Geometry:
+                return GL_GEOMETRY_SHADER;
+            case ShaderStage::TessControl:
+                return GL_TESS_CONTROL_SHADER;
+            case ShaderStage::TessEvaluation:
+                return GL_TESS_EVALUATION_SHADER;
+            case ShaderStage::Compute:
+                return GL_COMPUTE_SHADER;
+        }
+        return 0;
+    }
 
     class Shader {
         public:

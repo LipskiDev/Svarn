@@ -15,6 +15,7 @@ in vec2 v_TexCoord;
 in vec4 v_Tangent;
 in mat3 v_TangentBasis;
 
+
 const float Epsilon = 0.00001;
 
 struct DirLight { vec3 direction; vec3 radiance; };

@@ -3,6 +3,7 @@
 #include "Svarn/Application.h"
 #include "Svarn/Renderer/Texture.h"
 #include "Svarn/Layer.h"
+#include <glad/gl.h>
 #include <Svarn/Scene/PerspectiveCamera.h>
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_transform.hpp>
@@ -22,6 +23,8 @@ class ExampleLayer : public Layer {
 
     RendererAPIInfo apiInfo;
 
+    GLuint envTextureUnfiltered, envTextureEquirect;
+
     public:
     ExampleLayer() : Layer("Example") {
         apiInfo = Renderer::GetAPIInfo();
@@ -35,8 +38,12 @@ class ExampleLayer : public Layer {
         m_CerberusMetallic.reset(Texture::Create("Sandbox/assets/textures/Cerberus_M.tga"));
 
         m_CerberusShader.reset(Shader::Create("Sandbox/shaders/cerberus.vs", "Sandbox/shaders/cerberus.fs"));
-        //         u_DirLight.direction = vec3(-1.0, -1.0, -1.0);
-        // u_DirLight.radiance = vec3(0.5);
+
+        glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &envTextureEquirect);
+        glTextureStorage2D(envTextureEquirect, 1, GL_RGBA, 1024, 1024);
+        glTextureParameteri(envTextureEquirect, GL_TEXTURE_MIN_FILTER, 1 > 1 ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
+        glTextureParameteri(envTextureEquirect, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTextureParameterf(envTextureEquirect, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1);
     }
 
     void OnUpdate(Timestep ts) override {
