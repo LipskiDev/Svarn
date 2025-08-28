@@ -2,6 +2,7 @@
 #include <Svarn.h>
 
 #include "Svarn/Application.h"
+#include "Svarn/Renderer/Primitives.h"
 #include "Svarn/Renderer/Texture.h"
 #include "Svarn/Layer.h"
 #include <Svarn/Scene/PerspectiveCamera.h>
@@ -12,6 +13,8 @@ using namespace Svarn;
 
 class ExampleLayer : public Layer {
     std::shared_ptr<PerspectiveCamera> m_Camera;
+
+    std::shared_ptr<Mesh> m_SphereMesh;
 
     std::shared_ptr<Model> m_Cerberus;
     std::shared_ptr<Texture> m_CerberusAlbedo;
@@ -42,7 +45,7 @@ class ExampleLayer : public Layer {
 
         m_CerberusShader.reset(Shader::Create());
         m_CerberusShader->Attach(ShaderStage::Vertex, "Sandbox/shaders/cerberus.vs");
-        m_CerberusShader->Attach(ShaderStage::Fragment, "Sandbox/shaders/cerberus.fs");
+        m_CerberusShader->Attach(ShaderStage::Fragment, "Sandbox/shaders/pbr.fs");
         m_CerberusShader->Link();
 
         glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &envTextureUnfiltered);
@@ -62,6 +65,8 @@ class ExampleLayer : public Layer {
 
         glBindImageTexture(0, envTextureUnfiltered, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA16F);
         m_EquirectToCubeShader->Dispatch(1024 / 32, 1024 / 32, 6);
+
+        // m_SphereMesh.reset(Primitives::Sphere(10, 32, 32));
     }
 
     void OnUpdate(Timestep ts) override {
@@ -76,13 +81,19 @@ class ExampleLayer : public Layer {
 
         Renderer::BeginScene(m_Camera);
 
-        m_CerberusShader->SetVec3("u_DirLight.direction", glm::vec3(-1.0, -1.0, -1.0));
+        m_CerberusShader->Bind();
+        m_CerberusShader->SetVec3("u_DirLight.direction", glm::vec3(1.0, 1.0, 1.0));
         m_CerberusShader->SetVec3("u_DirLight.radiance", glm::vec3(1.0));
         m_CerberusAlbedo->Bind(0);
         m_CerberusNormals->Bind(1);
         m_CerberusRoughness->Bind(2);
         m_CerberusMetallic->Bind(3);
+        // m_CerberusShader->SetVec3("albedo", glm::vec3(1.0, 0.0, 0.0));
+        // m_CerberusShader->SetFloat("roughness", 0.0);
+        // m_CerberusShader->SetFloat("metallic", 0.0);
         Renderer::Submit(m_Cerberus, m_CerberusShader);
+
+        // Renderer::Submit(m_SphereMesh, m_CerberusShader);
 
         Renderer::EndScene();
     }

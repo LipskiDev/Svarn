@@ -24,6 +24,7 @@ namespace Svarn {
         // Compute Functions
         virtual void Dispatch(uint32_t groupsX, uint32_t groupsY, uint32_t groupsZ) = 0;
 
+        virtual void SetFloat(const std::string& name, const float& value) = 0;
         virtual void SetMat4(const std::string& name, const glm::mat4& value) = 0;
         virtual void SetVec3(const std::string& name, const glm::vec3& value) = 0;
 

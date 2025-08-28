@@ -39,6 +39,7 @@ namespace Svarn {
         // Compute Functions
         virtual void Dispatch(uint32_t groupsX, uint32_t groupsY, uint32_t groupsZ) override;
 
+        virtual void SetFloat(const std::string& uniformName, const float& value) override;
         virtual void SetMat4(const std::string& uniformName, const glm::mat4& value) override;
         virtual void SetVec3(const std::string& uniformName, const glm::vec3& value) override;
 

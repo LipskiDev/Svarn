@@ -108,6 +108,6 @@ void main()
 
     vec3 directLighting = (diffuseBRDF + specularBRDF) * Lradiance * cosLi;
 
-    outcolor = vec4(directLighting, 1.0);
+    outcolor = vec4(albedo, 1.0);
     // outcolor = vec4(diffuseBRDF, 1.0);
 }

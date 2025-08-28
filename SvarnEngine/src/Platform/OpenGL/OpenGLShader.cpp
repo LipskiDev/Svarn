@@ -80,6 +80,11 @@ namespace Svarn {
 
     void OpenGLShader::Dispatch(uint32_t groupsX, uint32_t groupsY, uint32_t groupsZ) { glDispatchCompute(groupsX, groupsY, groupsZ); }
 
+    void OpenGLShader::SetFloat(const std::string& uniformName, const float& value) {
+        GLint uniformLocation = glGetUniformLocation(m_ShaderID, uniformName.c_str());
+        glUniform1f(uniformLocation, value);
+    };
+
     void OpenGLShader::SetMat4(const std::string& uniformName, const glm::mat4& value) {
         GLint uniformLocation = glGetUniformLocation(m_ShaderID, uniformName.c_str());
         glUniformMatrix4fv(uniformLocation, 1, GL_FALSE, glm::value_ptr(value));
