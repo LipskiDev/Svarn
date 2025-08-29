@@ -8,17 +8,7 @@
 
 namespace Svarn {
 
-    OpenGLShader::OpenGLShader() {
-        // m_VertexPath = vertexPath;
-        // m_FragmentPath = fragmentPath;
-
-        m_ShaderID = glCreateProgram();
-
-        // GLuint vertexShader = CompileVertexShader(vertexPath);
-        // GLuint fragmentShader = CompileFragmentShader(fragmentPath);
-        //
-        // LinkShaders(vertexShader, fragmentShader);
-    };
+    OpenGLShader::OpenGLShader() { m_ShaderID = glCreateProgram(); };
 
     OpenGLShader::~OpenGLShader() { glDeleteShader(m_ShaderID); };
 
@@ -85,6 +75,11 @@ namespace Svarn {
         glUniform1f(uniformLocation, value);
     };
 
+    void OpenGLShader::SetBool(const std::string& uniformName, const bool& value) {
+        GLint uniformLocation = glGetUniformLocation(m_ShaderID, uniformName.c_str());
+        glUniform1i(uniformLocation, value);
+    };
+
     void OpenGLShader::SetMat4(const std::string& uniformName, const glm::mat4& value) {
         GLint uniformLocation = glGetUniformLocation(m_ShaderID, uniformName.c_str());
         glUniformMatrix4fv(uniformLocation, 1, GL_FALSE, glm::value_ptr(value));
@@ -94,6 +89,14 @@ namespace Svarn {
         GLint uniformLocation = glGetUniformLocation(m_ShaderID, uniformName.c_str());
         glUniform3f(uniformLocation, value.x, value.y, value.z);
     };
+
+    void OpenGLShader::BindTexture(const std::string& uniformName, std::shared_ptr<Texture> texture) {
+        GLint uniformLocation = glGetUniformLocation(m_ShaderID, uniformName.c_str());
+        glActiveTexture(GL_TEXTURE0 + m_ActiveTextures);
+        glBindTexture(GL_TEXTURE_2D, texture->m_RendererID);
+        glUniform1i(uniformLocation, m_ActiveTextures);
+        ++m_ActiveTextures;
+    }
 
     GLuint OpenGLShader::CompileShader(ShaderStage stage, std::string path) {
         std::string src = ReadFile(path);

@@ -2,10 +2,23 @@
 
 layout(location = 0) out vec4 outcolor;
 
-uniform sampler2D texture0; // albedo
-uniform sampler2D texture1; // normal
-uniform sampler2D texture2; // roughness
-uniform sampler2D texture3; // metallic
+struct Material {
+    bool useAlbedoTexture;
+    bool useNormalTexture;
+    bool useRoughnessTexture;
+    bool useMetallicTexture;
+
+    sampler2D albedoTexture; // albedo
+    sampler2D normalTexture; // normal
+    sampler2D roughnessTexture; // roughness
+    sampler2D metallicTexture; // metallic
+    
+    vec3 albedo;
+    float roughness;
+    float metallic;
+};
+
+uniform Material material;
 
 uniform vec3 u_CameraPosition;
 
@@ -65,45 +78,60 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
 
 void main()
 {
-    vec3 albedo = texture(texture0, v_TexCoord).rgb;
-    vec3 normal = texture(texture1, v_TexCoord).rgb;
-    float roughness = texture(texture2, v_TexCoord).r;
-    float metallic = texture(texture3, v_TexCoord).r;
+   // Fetch material parameters
+    vec3  albedo = material.useAlbedoTexture
+        ? texture(material.albedoTexture, v_TexCoord).rgb   // assume sRGB decode is enabled on the sampler/texture
+        : material.albedo;
+    float roughness = material.useRoughnessTexture
+        ? texture(material.roughnessTexture, v_TexCoord).r
+        : material.roughness;
+    float metallic = material.useMetallicTexture
+        ? texture(material.metallicTexture, v_TexCoord).r
+        : material.metallic;    vec3 normal;
 
-    vec3 N = normalize(normal);
+    roughness = clamp(roughness, 0.0, 1.0);
+    metallic = clamp(roughness, 0.0, 1.0);
+
+    vec3 T = normalize(v_TangentBasis[0]);
+    vec3 B = normalize(v_TangentBasis[1]) * sign(v_Tangent.w);
+    vec3 Ngeom = normalize(v_TangentBasis[2]);
+    mat3 TBN = mat3(T, B, Ngeom);
+    
+    vec3 N;
+    if (material.useNormalTexture) {
+        vec3 n_ts = texture(material.normalTexture, v_TexCoord).xyz * 2.0 - 1.0; // tangent space
+        // Optionally renormalize XY for BC5/AG normals: n_ts.z = sqrt(max(1.0 - dot(n_ts.xy, n_ts.xy), 0.0));
+        N = normalize(TBN * n_ts);  // to world space
+    } else {
+        N = Ngeom;
+    }
+
     vec3 V = normalize(u_CameraPosition - v_Position);
 
-    vec3 Lo = vec3(0.0);
-
-    vec3 L = u_DirLight.direction;
+    vec3 L = normalize(-u_DirLight.direction);
     vec3 H = normalize(V + L);
 
-    vec3 radiance = u_DirLight.radiance;
-
-    vec3 F0 = vec3(0.04); 
-    F0 = mix(F0, albedo, metallic);
+    vec3 F0 = mix(vec3(0.04), albedo, metallic);
     vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
-
     float NDF = DistributionGGX(N, H, roughness);
     float G = GeometrySmith(N, V, L, roughness);
 
     vec3 numerator = NDF * G * F;
-    float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
-    vec3 specular = numerator / denominator;
+    float denom = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 1e-4;
+    vec3 specular = numerator / denom;
 
     vec3 kS = F;
-    vec3 kD = vec3(1.0) - kS;
-
-    kD *= 1.0 - metallic;
+    vec3 kD = (1.0 - kS) * (1.0 - metallic);
 
     float NdotL = max(dot(N, L), 0.0);
-    Lo += (kD * albedo / PI + specular) * radiance * NdotL;
+    vec3 Lo = (kD * albedo / PI + specular) * u_DirLight.radiance * NdotL;
 
     vec3 ambient = vec3(0.03) * albedo;
+
     vec3 color = ambient + Lo;
 
     color = color / (color + vec3(1.0));
-    color = pow(color, vec3(1.0/2.2)); 
+    color = pow(color, vec3(1.0/ 2.2));
 
     outcolor = vec4(color, 1.0);
 

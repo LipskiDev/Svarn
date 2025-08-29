@@ -31,6 +31,8 @@ class ExampleLayer : public Layer {
 
     GLuint envTextureUnfiltered, envTextureEquirect;
 
+    bool m_RenderModel = false;
+
     public:
     ExampleLayer() : Layer("Example") {
         apiInfo = Renderer::GetAPIInfo();
@@ -61,12 +63,12 @@ class ExampleLayer : public Layer {
         m_EquirectEnvironmentTexture.reset(Texture::Create("Sandbox/assets/textures/meadow.hdr"));
 
         m_EquirectToCubeShader->Bind();
-        m_EquirectEnvironmentTexture->Bind(0);
+        m_EquirectToCubeShader->BindTexture("inputTexture", m_EquirectEnvironmentTexture);
 
         glBindImageTexture(0, envTextureUnfiltered, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA16F);
         m_EquirectToCubeShader->Dispatch(1024 / 32, 1024 / 32, 6);
 
-        // m_SphereMesh.reset(Primitives::Sphere(10, 32, 32));
+        m_SphereMesh.reset(Primitives::Sphere(10, 32, 32));
     }
 
     void OnUpdate(Timestep ts) override {
@@ -82,18 +84,32 @@ class ExampleLayer : public Layer {
         Renderer::BeginScene(m_Camera);
 
         m_CerberusShader->Bind();
-        m_CerberusShader->SetVec3("u_DirLight.direction", glm::vec3(1.0, 1.0, 1.0));
+        m_CerberusShader->SetVec3("u_DirLight.direction", glm::vec3(-1.0, -1.0, -1.0));
         m_CerberusShader->SetVec3("u_DirLight.radiance", glm::vec3(1.0));
-        m_CerberusAlbedo->Bind(0);
-        m_CerberusNormals->Bind(1);
-        m_CerberusRoughness->Bind(2);
-        m_CerberusMetallic->Bind(3);
-        // m_CerberusShader->SetVec3("albedo", glm::vec3(1.0, 0.0, 0.0));
-        // m_CerberusShader->SetFloat("roughness", 0.0);
-        // m_CerberusShader->SetFloat("metallic", 0.0);
-        Renderer::Submit(m_Cerberus, m_CerberusShader);
 
-        // Renderer::Submit(m_SphereMesh, m_CerberusShader);
+        if (m_RenderModel) {
+            m_CerberusShader->BindTexture("material.albedoTexture", m_CerberusAlbedo);
+            m_CerberusShader->BindTexture("material.normalTexture", m_CerberusNormals);
+            m_CerberusShader->BindTexture("material.roughnessTexture", m_CerberusRoughness);
+            m_CerberusShader->BindTexture("material.metallicTexture", m_CerberusMetallic);
+            m_CerberusShader->SetBool("material.useAlbedoTexture", true);
+            m_CerberusShader->SetBool("material.useNormalTexture", true);
+            m_CerberusShader->SetBool("material.useRoughnessTexture", true);
+            m_CerberusShader->SetBool("material.useMetallicTexture", true);
+
+            Renderer::Submit(m_Cerberus, m_CerberusShader);
+        } else {
+            m_CerberusShader->SetVec3("material.albedo", glm::vec3(1.0, 0.0, 0.0));
+            m_CerberusShader->SetFloat("material.roughness", 0.0);
+            m_CerberusShader->SetFloat("material.metallic", 0.0);
+
+            m_CerberusShader->SetBool("material.useAlbedoTexture", false);
+            m_CerberusShader->SetBool("material.useNormalTexture", false);
+            m_CerberusShader->SetBool("material.useRoughnessTexture", false);
+            m_CerberusShader->SetBool("material.useMetallicTexture", false);
+
+            Renderer::Submit(m_SphereMesh, m_CerberusShader);
+        }
 
         Renderer::EndScene();
     }
@@ -106,6 +122,11 @@ class ExampleLayer : public Layer {
             ImGui::Text("Vendor: %s", apiInfo.Vendor.c_str());
             ImGui::Text("Renderer: %s", apiInfo.Renderer.c_str());
             ImGui::Text("Version: %s", apiInfo.Version.c_str());
+            if (ImGui::Button("Toggle Render Model")) {
+                m_RenderModel = !m_RenderModel;  // switch on press
+            }
+
+            ImGui::Text("Render Model: %s", m_RenderModel ? "ON" : "OFF");
         }
         ImGui::End();
     }

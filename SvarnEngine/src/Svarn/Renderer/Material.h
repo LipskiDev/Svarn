@@ -1,0 +1,52 @@
+#pragma once
+
+#include "Svarn/Renderer/Shader.h"
+#include "Svarn/Renderer/Texture.h"
+namespace Svarn {
+    class Material {
+        public:
+        static Material* FromTextures(std::shared_ptr<Texture> albedoTexture, std::shared_ptr<Texture> normalTexture,
+                                      std::shared_ptr<Texture> roughnessTexture, std::shared_ptr<Texture> metallicTexture);
+
+        static Material* FromValues(glm::vec3 color, float roughness, float metallic);
+
+        static Material* New();
+
+        void BindToShader(std::shared_ptr<Shader> shader);
+
+        void SetAlbedoValue(glm::vec3 color);
+        void SetRoughnessValue(float roughness);
+        void SetMetallicValue(float metallic);
+
+        void SetAlbedoTexture(std::shared_ptr<Texture> albedoTexture);
+        void SetNormalTexture(std::shared_ptr<Texture> normalTexture);
+        void SetRoughnessTexture(std::shared_ptr<Texture> roughnessTexture);
+        void SetMetallicTexture(std::shared_ptr<Texture> metallicTexture);
+
+        private:
+        Material(std::shared_ptr<Texture> albedoTexture, std::shared_ptr<Texture> normalTexture, std::shared_ptr<Texture> roughnessTexture,
+                 std::shared_ptr<Texture> metallicTexture);
+
+        Material(glm::vec3 color, float roughness, float metallic);
+
+        Material();
+        bool m_UseAlbedoTexture;
+        bool m_UseNormalTexture;
+        bool m_UseRoughnessTexture;
+        bool m_UseMetallicTexture;
+
+        // Textures
+        std::shared_ptr<Texture> m_AlbedoTexture;
+
+        std::shared_ptr<Texture> m_NormalTexture;
+
+        std::shared_ptr<Texture> m_RoughnessTexture;
+
+        std::shared_ptr<Texture> m_MetallicTexture;
+
+        // Non-Texture Values
+        glm::vec3 m_AlbedoValue;
+        float m_RoughnessValue;
+        float m_MetallicValue;
+    };
+}  // namespace Svarn

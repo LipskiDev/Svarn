@@ -11,16 +11,18 @@
 #include <glm/gtx/quaternion.hpp>
 
 namespace Svarn {
-    PerspectiveCamera::PerspectiveCamera(float fov, float aspectRatio, float nearClipPlane, float farClipPlane) {
-        m_FOV = fov;
-        m_AspectRatio = aspectRatio;
-        m_NearClipPlane = nearClipPlane;
-        m_FarClipPlane = farClipPlane;
-        m_ProjectionMatrix = glm::perspective(glm::radians(m_FOV), m_AspectRatio, m_NearClipPlane, m_FarClipPlane);
-        glm::mat4 cameraTransform = glm::translate(glm::mat4(1.0), m_Position) * glm::mat4_cast(m_Rotation);
-        m_ViewMatrix = glm::inverse(cameraTransform);
-        m_ViewProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;
+    PerspectiveCamera::PerspectiveCamera(float fov, float aspectRatio, float nearClipPlane, float farClipPlane)
+        : m_FOV(fov), m_AspectRatio(aspectRatio), m_NearClipPlane(nearClipPlane), m_FarClipPlane(farClipPlane) {
         m_Position = glm::vec3(0.0, 0.0, 3.0);
+        m_Rotation = glm::quat(1.0, 0.0, 0.0, 0.0);
+        m_ProjectionMatrix = glm::perspective(glm::radians(m_FOV), m_AspectRatio, m_NearClipPlane, m_FarClipPlane);
+        const glm::mat4 I(1.0f);
+        const glm::mat4 T = glm::translate(I, m_Position);
+        const glm::mat4 R = glm::mat4_cast(glm::normalize(m_Rotation));
+        const glm::mat4 worldFromCamera = T * R;
+
+        m_ViewMatrix = glm::inverse(worldFromCamera);
+        m_ViewProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;
     };
 
     void PerspectiveCamera::OnUpdate(Timestep ts) {

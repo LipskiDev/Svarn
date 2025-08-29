@@ -17,6 +17,9 @@ out vec2 v_TexCoord;
 out vec4 v_Tangent;
 out mat3 v_TangentBasis;
 
+mat3 computeNormalMatrix(mat4 M) {
+    return transpose(inverse(mat3(M)));
+}
 
 void main()
 {
@@ -24,19 +27,20 @@ void main()
     vec4 worldPos = modelMatrix * vec4(a_Position, 1.0);
     v_Position = worldPos.xyz;
 
-    v_TangentBasis = mat3(modelMatrix) * mat3(a_Tangent, a_Bitangent, a_Normal);
+    mat3 Nmat = computeNormalMatrix(modelMatrix);
+    vec3 N = normalize(Nmat * a_Normal);
 
-    // transform normal
-    mat3 normalMatrix = transpose(inverse(mat3(modelMatrix)));
-    v_Normal = normalize(normalMatrix * a_Normal);
+    vec3 Traw = mat3(modelMatrix) * a_Tangent.xyz;
 
-    // tangent (xyz) transformed like a direction
-    vec3 T = normalize(mat3(modelMatrix) * a_Tangent.xyz);
-    v_Tangent = vec4(T, a_Tangent.w); // keep handedness in .w
+    vec3 T = normalize(Traw - N * dot(Traw, N));
 
-    // uv
+    float handedness = a_Tangent.w;
+    vec3 B = cross(N, T) * handedness;
+    
+    v_Normal = N;
+    v_Tangent = vec4(T, handedness);
     v_TexCoord = a_TexCoord;
+    v_TangentBasis = mat3(T, B, N);
 
-    // final position
     gl_Position = VP * worldPos;
 }

@@ -7,6 +7,24 @@ uniform sampler2D texture1; // normal
 uniform sampler2D texture2; // roughness
 uniform sampler2D texture3; // metallic
 
+struct Material {
+    bool useAlbedoTexture;
+    bool useNormalTexture;
+    bool useRoughnessTexture;
+    bool useMetallicTetxure;
+
+    sampler2D albedoTexture;
+    sampler2D normalTexture;
+    sampler2D roughnessTexture;
+    sampler2D metallicTexture;
+
+    vec3 albedo;
+    float roughness;
+    float metallic;
+};
+
+uniform Material material;
+
 uniform vec3 u_CameraPosition;
 
 in vec3 v_Position;

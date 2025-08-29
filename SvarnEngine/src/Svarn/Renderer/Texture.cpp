@@ -1,6 +1,5 @@
 #include <svpch.h>
 
-#include <Svarn/Renderer/Texture.h>
 #include <Svarn/Renderer/Renderer.h>
 #include "Platform/OpenGL/OpenGLTexture.h"
 

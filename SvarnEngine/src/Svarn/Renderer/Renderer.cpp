@@ -51,6 +51,9 @@ namespace Svarn {
     void Renderer::Submit(std::shared_ptr<Model>& model, std::shared_ptr<Shader>& shader) {
         shader->Bind();
         auto meshes = model->GetAllMeshes();
+        for (auto& mesh : meshes) {
+            mesh->GetVertexArray()->Bind();
+        }
 
         glm::mat4 modelMatrix(1.0f);
         modelMatrix = glm::rotate(modelMatrix, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));

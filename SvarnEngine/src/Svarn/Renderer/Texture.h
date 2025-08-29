@@ -19,8 +19,9 @@ namespace Svarn {
     };
 
     class Texture {
+        friend class OpenGLShader;
+
         public:
-        virtual void Bind(uint32_t unit) const = 0;
         virtual void SetFiltering(TextureFiltering minFilter, TextureFiltering magFilter) const = 0;
         virtual void SetWrapping(TextureWrapping wrap) const = 0;
         virtual void SetData(const void* pixels, size_t /*sizeBytes*/, int level) = 0;
