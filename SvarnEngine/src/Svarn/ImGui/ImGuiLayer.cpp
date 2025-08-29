@@ -328,6 +328,17 @@ namespace Svarn {
         }
     }
 
+    void ImGuiLayer::OnEvent(Event& e) {
+        ImGuiIO& io = ImGui::GetIO();
+        if (io.WantCaptureMouse) {
+            e.Handled = true;
+        }
+
+        if (io.WantCaptureKeyboard) {
+            e.Handled = true;
+        }
+    }
+
     void ImGuiLayer::OnImGuiRender(Timestep ts) { static bool show = true; }
 
 }  // namespace Svarn

@@ -5,6 +5,7 @@
 #include "Svarn/Renderer/Primitives.h"
 #include "Svarn/Renderer/Texture.h"
 #include "Svarn/Layer.h"
+#include "imgui.h"
 #include <Svarn/Scene/PerspectiveCamera.h>
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_transform.hpp>
@@ -27,6 +28,14 @@ class ExampleLayer : public Layer {
     std::shared_ptr<Shader> m_CerberusShader;
     std::shared_ptr<Shader> m_EquirectToCubeShader;
 
+    // PBR Variables
+    glm::vec3 m_SphereAlbedo;
+    float m_SphereRoughness;
+    float m_SphereMetallic;
+
+    glm::vec3 m_LightDirection = glm::vec3(0.0, 1.0, 0.0);
+    glm::vec3 m_LightRadiance = glm::vec3(1.0, 1.0, 1.0);
+
     RendererAPIInfo apiInfo;
 
     GLuint envTextureUnfiltered, envTextureEquirect;
@@ -46,29 +55,29 @@ class ExampleLayer : public Layer {
         m_CerberusMetallic.reset(Texture::Create("Sandbox/assets/textures/Cerberus_M.tga"));
 
         m_CerberusShader.reset(Shader::Create());
-        m_CerberusShader->Attach(ShaderStage::Vertex, "Sandbox/shaders/cerberus.vs");
+        m_CerberusShader->Attach(ShaderStage::Vertex, "Sandbox/shaders/pbr.vs");
         m_CerberusShader->Attach(ShaderStage::Fragment, "Sandbox/shaders/pbr.fs");
         m_CerberusShader->Link();
 
-        glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &envTextureUnfiltered);
-        glTextureStorage2D(envTextureUnfiltered, 1, GL_RGBA16F, 1024, 1024);
-        glTextureParameteri(envTextureUnfiltered, GL_TEXTURE_MIN_FILTER, 1 > 1 ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
-        glTextureParameteri(envTextureUnfiltered, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTextureParameterf(envTextureUnfiltered, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1);
-
-        m_EquirectToCubeShader.reset(Shader::Create());
-        m_EquirectToCubeShader->Attach(ShaderStage::Compute, "Sandbox/shaders/equirectToCube.cs");
-        m_EquirectToCubeShader->Link();
-
-        m_EquirectEnvironmentTexture.reset(Texture::Create("Sandbox/assets/textures/meadow.hdr"));
-
-        m_EquirectToCubeShader->Bind();
-        m_EquirectToCubeShader->BindTexture("inputTexture", m_EquirectEnvironmentTexture);
-
-        glBindImageTexture(0, envTextureUnfiltered, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA16F);
-        m_EquirectToCubeShader->Dispatch(1024 / 32, 1024 / 32, 6);
-
         m_SphereMesh.reset(Primitives::Sphere(10, 32, 32));
+
+        // glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &envTextureUnfiltered);
+        // glTextureStorage2D(envTextureUnfiltered, 1, GL_RGBA16F, 1024, 1024);
+        // glTextureParameteri(envTextureUnfiltered, GL_TEXTURE_MIN_FILTER, 1 > 1 ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
+        // glTextureParameteri(envTextureUnfiltered, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        // glTextureParameterf(envTextureUnfiltered, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1);
+        //
+        // m_EquirectToCubeShader.reset(Shader::Create());
+        // m_EquirectToCubeShader->Attach(ShaderStage::Compute, "Sandbox/shaders/equirectToCube.cs");
+        // m_EquirectToCubeShader->Link();
+        //
+        // m_EquirectEnvironmentTexture.reset(Texture::Create("Sandbox/assets/textures/meadow.hdr"));
+        //
+        // m_EquirectToCubeShader->Bind();
+        // m_EquirectToCubeShader->BindTexture("inputTexture", m_EquirectEnvironmentTexture);
+        //
+        // glBindImageTexture(0, envTextureUnfiltered, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA16F);
+        // m_EquirectToCubeShader->Dispatch(1024 / 32, 1024 / 32, 6);
     }
 
     void OnUpdate(Timestep ts) override {
@@ -84,8 +93,8 @@ class ExampleLayer : public Layer {
         Renderer::BeginScene(m_Camera);
 
         m_CerberusShader->Bind();
-        m_CerberusShader->SetVec3("u_DirLight.direction", glm::vec3(-1.0, -1.0, -1.0));
-        m_CerberusShader->SetVec3("u_DirLight.radiance", glm::vec3(1.0));
+        m_CerberusShader->SetVec3("u_DirLight.direction", m_LightDirection);
+        m_CerberusShader->SetVec3("u_DirLight.radiance", m_LightRadiance);
 
         if (m_RenderModel) {
             m_CerberusShader->BindTexture("material.albedoTexture", m_CerberusAlbedo);
@@ -99,9 +108,9 @@ class ExampleLayer : public Layer {
 
             Renderer::Submit(m_Cerberus, m_CerberusShader);
         } else {
-            m_CerberusShader->SetVec3("material.albedo", glm::vec3(1.0, 0.0, 0.0));
-            m_CerberusShader->SetFloat("material.roughness", 0.0);
-            m_CerberusShader->SetFloat("material.metallic", 0.0);
+            m_CerberusShader->SetVec3("material.albedo", m_SphereAlbedo);
+            m_CerberusShader->SetFloat("material.roughness", m_SphereRoughness);
+            m_CerberusShader->SetFloat("material.metallic", m_SphereMetallic);
 
             m_CerberusShader->SetBool("material.useAlbedoTexture", false);
             m_CerberusShader->SetBool("material.useNormalTexture", false);
@@ -122,11 +131,28 @@ class ExampleLayer : public Layer {
             ImGui::Text("Vendor: %s", apiInfo.Vendor.c_str());
             ImGui::Text("Renderer: %s", apiInfo.Renderer.c_str());
             ImGui::Text("Version: %s", apiInfo.Version.c_str());
-            if (ImGui::Button("Toggle Render Model")) {
-                m_RenderModel = !m_RenderModel;  // switch on press
+
+            ImGui::Spacing();
+            ImGui::Separator();
+            ImGui::Spacing();
+
+            if (ImGui::Button(m_RenderModel ? "Render Model ON" : "Render Model OFF")) {
+                m_RenderModel = !m_RenderModel;
             }
 
-            ImGui::Text("Render Model: %s", m_RenderModel ? "ON" : "OFF");
+            ImGui::Spacing();
+
+            ImGui::SliderFloat3("Light Direction", &m_LightDirection.x, -1.0f, 1.0f);
+            ImGui::ColorEdit3("Light Color", &m_LightRadiance.x);
+
+            if (!m_RenderModel) {
+                ImGui::Spacing();
+                ImGui::Separator();
+                ImGui::Spacing();
+                ImGui::ColorEdit3("Sphere Color", &m_SphereAlbedo.x);
+                ImGui::SliderFloat("Sphere Roughness", &m_SphereRoughness, 0.0f, 1.0f);
+                ImGui::SliderFloat("Sphere Metallic", &m_SphereMetallic, 0.0f, 1.0f);
+            }
         }
         ImGui::End();
     }

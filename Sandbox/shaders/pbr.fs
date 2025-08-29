@@ -89,8 +89,9 @@ void main()
         ? texture(material.metallicTexture, v_TexCoord).r
         : material.metallic;    vec3 normal;
 
+
     roughness = clamp(roughness, 0.0, 1.0);
-    metallic = clamp(roughness, 0.0, 1.0);
+    metallic = clamp(metallic, 0.0, 1.0);
 
     vec3 T = normalize(v_TangentBasis[0]);
     vec3 B = normalize(v_TangentBasis[1]) * sign(v_Tangent.w);
