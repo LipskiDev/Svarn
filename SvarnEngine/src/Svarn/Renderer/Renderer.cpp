@@ -15,6 +15,8 @@ namespace Svarn {
     glm::mat4 m_VP;
     glm::vec3 m_CameraPosition;
 
+    std::vector<std::shared_ptr<Shader>> loadedShaders;
+
     void Renderer::BeginScene(const std::shared_ptr<Camera>& camera) {
         m_ViewMatrix = camera->GetViewMatrix();
         m_ProjectionMatrix = camera->GetViewMatrix();
@@ -22,9 +24,14 @@ namespace Svarn {
         m_CameraPosition = camera->GetPosition();
     }
 
-    void Renderer::EndScene() {}
+    void Renderer::EndScene() {
+        for (std::shared_ptr<Shader> shader : loadedShaders) {
+            shader->m_ActiveTextures = 0;
+        }
+    }
 
     void Renderer::Submit(std::shared_ptr<VertexArray>& vertexArray, std::shared_ptr<Shader>& shader) {
+        loadedShaders.push_back(shader);
         shader->Bind();
         vertexArray->Bind();
         shader->SetMat4("modelMatrix", glm::mat4(1.0));
@@ -37,6 +44,7 @@ namespace Svarn {
     }
 
     void Renderer::Submit(std::shared_ptr<Mesh>& mesh, std::shared_ptr<Shader>& shader) {
+        loadedShaders.push_back(shader);
         shader->Bind();
         mesh->GetVertexArray()->Bind();
         shader->SetMat4("modelMatrix", glm::mat4(1.0));
@@ -49,6 +57,7 @@ namespace Svarn {
     }
 
     void Renderer::Submit(std::shared_ptr<Model>& model, std::shared_ptr<Shader>& shader) {
+        loadedShaders.push_back(shader);
         shader->Bind();
         auto meshes = model->GetAllMeshes();
         for (auto& mesh : meshes) {

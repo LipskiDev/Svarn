@@ -11,6 +11,8 @@ namespace Svarn {
     enum class ShaderStage { Vertex, Fragment, Geometry, TessControl, TessEvaluation, Compute };
 
     class Shader {
+        friend class Renderer;
+
         public:
         virtual ~Shader() {};
 
