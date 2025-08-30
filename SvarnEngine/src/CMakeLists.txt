@@ -40,6 +40,8 @@
     "Svarn/Renderer/Mesh.cpp"
     "Svarn/Renderer/Model.h"
     "Svarn/Renderer/Model.cpp"
+    "Svarn/Renderer/Primitives.cpp"
+    "Svarn/Renderer/Primitives.h"
     "Svarn/Renderer/RenderCommand.cpp"
     "Svarn/Renderer/RenderCommand.h"
     "Svarn/Renderer/Renderer.cpp"

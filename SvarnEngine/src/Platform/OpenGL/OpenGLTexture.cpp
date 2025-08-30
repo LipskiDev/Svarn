@@ -106,13 +106,6 @@ namespace Svarn {
         }
     }
 
-    void OpenGLTexture::Bind(uint32_t unit) const {
-        glBindTextureUnit(unit, m_RendererID);
-        std::stringstream ss;
-        ss << "texture" << unit;
-        glUniform1i(glGetUniformLocation(m_RendererID, ss.str().c_str()), unit);
-    }
-
     void OpenGLTexture::SetFiltering(TextureFiltering minFilter, TextureFiltering magFilter) const {
         glBindTexture(GL_TEXTURE_2D, m_RendererID);
         GLenum glMin = (minFilter == TextureFiltering::Linear) ? GL_LINEAR_MIPMAP_LINEAR  // trilinear if you have mips

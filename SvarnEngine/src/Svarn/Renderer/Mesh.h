@@ -10,6 +10,9 @@ namespace Svarn {
         glm::vec3 position;
         glm::vec3 normal;
         glm::vec2 uv;
+
+        glm::vec4 tangent;
+        glm::vec4 bitangent;
     };
 
     class Mesh {

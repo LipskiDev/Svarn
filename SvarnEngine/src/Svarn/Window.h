@@ -11,8 +11,7 @@ namespace Svarn {
         unsigned int Width;
         unsigned int Height;
 
-        WindowProps(const std::string &title = "Svarn Engine",
-                    unsigned int width = 1280, unsigned int height = 720)
+        WindowProps(const std::string &title = "Svarn Engine", unsigned int width = 1920, unsigned int height = 1080)
             : Title(title), Width(width), Height(height) {}
     };
 

@@ -18,6 +18,7 @@ SvarnEngine/src/Debug
 **.sln
 **.csproj
 Makefile
+imgui.ini
 
 # Visual Studio files and folder
 .vs/
