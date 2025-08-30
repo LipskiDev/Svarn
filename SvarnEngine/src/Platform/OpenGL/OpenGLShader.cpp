@@ -153,46 +153,15 @@ namespace Svarn {
     };
 
     void OpenGLShader::ReloadShader() {
-        // // 1) Compile stages
-        // GLuint vs = CompileVertexShader(m_VertexPath);
-        // GLuint fs = CompileFragmentShader(m_FragmentPath);
-        // if (!vs || !fs) {
-        //     glDeleteShader(vs);
-        //     glDeleteShader(fs);
-        //     SV_CORE_ERROR("Reload aborted: compilation failed.");
-        // }
-        //
-        // // 2) Link into a TEMP program
-        // GLuint newProg = glCreateProgram();
-        // glAttachShader(newProg, vs);
-        // glAttachShader(newProg, fs);
-        // glLinkProgram(newProg);
-        //
-        // // shader objects are no longer needed after link
-        // glDeleteShader(vs);
-        // glDeleteShader(fs);
-        //
-        // GLint linked = GL_FALSE;
-        // glGetProgramiv(newProg, GL_LINK_STATUS, &linked);
-        // if (!linked) {
-        //     GLint len = 0;
-        //     glGetProgramiv(newProg, GL_INFO_LOG_LENGTH, &len);
-        //     std::string log(len, '\0');
-        //     glGetProgramInfoLog(newProg, len, nullptr, log.data());
-        //     SV_CORE_ERROR("Link failed:\n{}", log);
-        //     glDeleteProgram(newProg);
-        // }
-        //
-        // // 3) Swap programs atomically
-        // GLuint old = m_ShaderID;
-        // m_ShaderID = newProg;
-        // glUseProgram(m_ShaderID);  // make new one current
-        // glDeleteProgram(old);      // safe: deletion deferred if still in use
-        //
-        // // 4) (optional) re-apply cached uniforms/samplers if you have a cache
-        // // reapplyUniforms();
-        //
-        // SV_INFO("Shaders reloaded successfully.");
+        for (std::pair<ShaderStage, std::string> pair : m_ShaderPaths) {
+            ShaderStage stage = pair.first;
+            std::string path = pair.second;
+
+            Attach(stage, path);
+        }
+
+        Link();
+        SV_INFO("Shaders reloaded successfully.");
     };
 
     std::string OpenGLShader::ReadFile(const std::string& filepath) {

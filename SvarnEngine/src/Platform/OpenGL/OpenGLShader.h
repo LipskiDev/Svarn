@@ -57,8 +57,6 @@ namespace Svarn {
 
         private:
         GLint m_ShaderID;
-
-        std::string m_VertexPath, m_FragmentPath;
     };
 
 }  // namespace Svarn
