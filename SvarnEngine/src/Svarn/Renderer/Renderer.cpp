@@ -19,7 +19,7 @@ namespace Svarn {
 
     void Renderer::BeginScene(const std::shared_ptr<Camera>& camera) {
         m_ViewMatrix = camera->GetViewMatrix();
-        m_ProjectionMatrix = camera->GetViewMatrix();
+        m_ProjectionMatrix = camera->GetProjection();
         m_VP = camera->GetViewProjection();
         m_CameraPosition = camera->GetPosition();
     }
@@ -29,6 +29,8 @@ namespace Svarn {
             shader->m_ActiveTextures = 0;
         }
     }
+
+    void Renderer::Clear() { RenderCommand::Clear(); }
 
     void Renderer::Submit(std::shared_ptr<VertexArray>& vertexArray, std::shared_ptr<Shader>& shader) {
         loadedShaders.push_back(shader);
@@ -75,5 +77,12 @@ namespace Svarn {
         for (auto& mesh : meshes) {
             RenderCommand::DrawIndexed(mesh->GetVertexArray());
         }
+    }
+
+    // TODO: implement shader library so that i can just call 'DrawToScreen(texture);' and the correct shader + quad is chosen and generated
+    void Renderer::DrawToScreen(std::shared_ptr<Mesh>& mesh, std::shared_ptr<Shader>& shader) {
+        RenderCommand::DisableDepthTest();
+        Submit(mesh, shader);
+        RenderCommand::EnableDepthTest();
     }
 }  // namespace Svarn

@@ -2,9 +2,11 @@
 
 #include <Svarn/Renderer/Primitives.h>
 #include "Svarn/Core.h"
+#include "Svarn/Renderer/Buffer.h"
+#include "Svarn/Renderer/VertexArray.h"
 
 namespace Svarn {
-    Mesh* Primitives::Sphere(int radius, int slices, int stacks) {
+    std::shared_ptr<Mesh> Primitives::Sphere(int radius, int slices, int stacks) {
         if (radius <= 0.0f || slices < 3 || stacks < 2) {
             SV_ASSERT(false, "Cannot create a sphere Mesh.");
         }
@@ -92,7 +94,43 @@ namespace Svarn {
                 indices.push_back(i3);
             }
         }
+        std::shared_ptr<Mesh> mesh;
+        mesh.reset(Mesh::Create(verts, indices));
+        return mesh;
+    }
 
-        return Mesh::Create(verts, indices);
+    std::shared_ptr<Mesh> Primitives::FullscreenQuad() {
+        std::vector<Vertex> verts;
+        std::vector<uint32_t> indices;
+
+        verts.reserve(4);
+        indices.reserve(6);
+
+        // Shared attributes
+        const glm::vec3 N = glm::vec3(0.f, 0.f, 1.f);       // facing +Z
+        const glm::vec4 T = glm::vec4(1.f, 0.f, 0.f, 1.f);  // tangent +X
+        const glm::vec4 B = glm::vec4(0.f, 1.f, 0.f, 1.f);  // bitangent +Y
+
+        // Interleaved vertex attributes: [x, y, z] + [u, v]
+        // NDC positions cover the whole screen; UVs in [0,1]
+        verts.push_back(Vertex{
+            glm::vec3(-1.f, -1.f, 0.f), N, glm::vec2(0.f, 0.f), T, B  // bottom-left
+        });
+        verts.push_back(Vertex{
+            glm::vec3(1.f, -1.f, 0.f), N, glm::vec2(1.f, 0.f), T, B  // bottom-right
+        });
+        verts.push_back(Vertex{
+            glm::vec3(1.f, 1.f, 0.f), N, glm::vec2(1.f, 1.f), T, B  // top-right
+        });
+        verts.push_back(Vertex{
+            glm::vec3(-1.f, 1.f, 0.f), N, glm::vec2(0.f, 1.f), T, B  // top-left
+        });
+
+        // Two CCW triangles (as seen from +Z)
+        indices = {0, 1, 2, 0, 2, 3};
+
+        std::shared_ptr<Mesh> mesh;
+        mesh.reset(Mesh::Create(verts, indices));
+        return mesh;
     }
 }  // namespace Svarn

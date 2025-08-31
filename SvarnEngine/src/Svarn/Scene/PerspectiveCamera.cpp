@@ -23,6 +23,8 @@ namespace Svarn {
 
         m_ViewMatrix = glm::inverse(worldFromCamera);
         m_ViewProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;
+        SV_CORE_INFO("VP = {0}", m_ViewProjectionMatrix);
+        SV_CORE_INFO("V*P = {0}", m_ProjectionMatrix * m_ViewMatrix);
     };
 
     void PerspectiveCamera::OnUpdate(Timestep ts) {
@@ -59,9 +61,8 @@ namespace Svarn {
     };
 
     bool PerspectiveCamera::RotateCamera(MouseMovedEvent& event) {
-        auto [x, y] = Input::GetMousePosition();
-
         if (Input::IsMouseButtonPressed(0)) {
+            auto [x, y] = Input::GetMousePosition();
             if (m_FirstMouse) {
                 m_LastX = x;
                 m_LastY = y;
@@ -99,9 +100,12 @@ namespace Svarn {
     }
 
     void PerspectiveCamera::UpdateCamera() {
-        glm::mat4 V = glm::mat4_cast(glm::conjugate(m_Rotation))       // R^T
-                      * glm::translate(glm::mat4(1.0f), -m_Position);  // T^{-1}
-        m_ViewMatrix = V;
+        const glm::mat4 I(1.0f);
+        const glm::mat4 T = glm::translate(I, m_Position);
+        const glm::mat4 R = glm::mat4_cast(glm::normalize(m_Rotation));
+        const glm::mat4 worldFromCamera = T * R;
+
+        m_ViewMatrix = glm::inverse(worldFromCamera);
         m_ViewProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;
     }
 }  // namespace Svarn

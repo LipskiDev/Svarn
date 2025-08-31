@@ -20,6 +20,7 @@ namespace Svarn {
 
     class Texture {
         friend class OpenGLShader;
+        friend class OpenGLFramebuffer;
 
         public:
         virtual void SetFiltering(TextureFiltering minFilter, TextureFiltering magFilter) const = 0;

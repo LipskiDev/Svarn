@@ -27,7 +27,7 @@ namespace Svarn {
             case TextureFormat::R11F_G11F_B10F:
                 internal = GL_R11F_G11F_B10F;
                 format = GL_RGB;
-                type = GL_FLOAT;
+                type = GL_UNSIGNED_INT_10F_11F_11F_REV;
                 break;
             case TextureFormat::R32F:
                 internal = GL_R32F;
@@ -37,7 +37,7 @@ namespace Svarn {
             case TextureFormat::Depth24:
                 internal = GL_DEPTH_COMPONENT24;
                 format = GL_DEPTH_COMPONENT;
-                type = GL_UNSIGNED_INT;
+                type = GL_FLOAT;
                 break;
             case TextureFormat::Depth32F:
                 internal = GL_DEPTH_COMPONENT32F;
@@ -84,7 +84,7 @@ namespace Svarn {
         m_Height = spec.height;
         m_IsLoaded = false;
 
-        if (!m_RendererID) glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererID);
+        glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererID);
 
         unsigned internal, format, type;
         MapFormat(spec.format, internal, format, type);
@@ -96,14 +96,6 @@ namespace Svarn {
 
         SetFiltering(spec.filtering, spec.filtering);
         SetWrapping(spec.wrapping);
-
-        if (IsDepth(spec.format)) {
-            // TODO: Add Abstraction to make these controllable from outside of class
-            // If later using depth compare for shadow mapping, change these
-            glTextureParameteri(m_RendererID, GL_TEXTURE_COMPARE_MODE, GL_NONE);
-            // glTextureParameteri(m_ID, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-            // glTextureParameteri(m_ID, GL_TEXTURE_COMPARE_FUNC, GL_LESS);
-        }
     }
 
     void OpenGLTexture::SetFiltering(TextureFiltering minFilter, TextureFiltering magFilter) const {

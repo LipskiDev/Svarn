@@ -2,7 +2,6 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
-#include "Svarn/Log.h"
 
 namespace Svarn {
 
@@ -19,14 +18,13 @@ namespace Svarn {
         const glm::quat& GetRotation() const { return m_Rotation; }
 
         protected:
-        glm::vec3 m_Position = glm::vec3(0.0);
-        glm::quat m_Rotation{1.0f, 0.0f, 0.0f, 0.0f};
-        glm::mat4 m_ViewMatrix = glm::mat4(1.0);
-        glm::mat4 m_ProjectionMatrix = glm::mat4(1.0);
-        glm::mat4 m_ViewProjectionMatrix = glm::mat4(1.0);
+        glm::vec3 m_Position;
+        glm::quat m_Rotation;
+        glm::mat4 m_ViewMatrix;
+        glm::mat4 m_ProjectionMatrix;
+        glm::mat4 m_ViewProjectionMatrix;
 
         private:
         virtual void UpdateCamera() = 0;
     };
-
 }  // namespace Svarn

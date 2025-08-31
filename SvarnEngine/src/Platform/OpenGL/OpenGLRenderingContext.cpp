@@ -15,6 +15,7 @@ namespace Svarn {
 
     void OpenGLRenderingContext::Init() {
         glfwMakeContextCurrent(m_WindowHandle);
+        SV_CORE_INFO("OpenGL Rendering Context setup.");
         int success = gladLoadGL(glfwGetProcAddress);
         SV_CORE_ASSERT(success, "Failed to initialize GLAD!");
         glEnable(GL_DEPTH_TEST);
