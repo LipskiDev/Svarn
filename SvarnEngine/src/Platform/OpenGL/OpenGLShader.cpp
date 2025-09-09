@@ -82,6 +82,7 @@ namespace Svarn {
 
     void OpenGLShader::SetMat4(const std::string& uniformName, const glm::mat4& value) {
         GLint uniformLocation = glGetUniformLocation(m_ShaderID, uniformName.c_str());
+        SV_CORE_INFO("{0}: {1}", uniformName, uniformLocation);
         glUniformMatrix4fv(uniformLocation, 1, GL_FALSE, glm::value_ptr(value));
     };
 

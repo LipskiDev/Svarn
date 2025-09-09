@@ -6,6 +6,7 @@
 #include "Svarn/Renderer/Primitives.h"
 #include "Svarn/Renderer/Texture.h"
 #include "Svarn/Layer.h"
+#include "Svarn/Scene/DirectionalLight.h"
 #include "imgui.h"
 #include <Svarn/Scene/PerspectiveCamera.h>
 #include <glm/glm.hpp>
@@ -15,9 +16,14 @@ using namespace Svarn;
 
 class ExampleLayer : public Layer {
     std::shared_ptr<PerspectiveCamera> m_Camera;
+    std::shared_ptr<DirectionalLight> m_Light;
 
     std::shared_ptr<Mesh> m_SphereMesh;
     std::shared_ptr<Mesh> m_ScreenQuad;
+
+    std::shared_ptr<Mesh> m_Ground;
+    glm::mat4 m_GroundTransformation = glm::mat4(1.0);
+    std::shared_ptr<Texture> m_GroundTexture;
 
     std::shared_ptr<Model> m_Cerberus;
     std::shared_ptr<Texture> m_CerberusAlbedo;
@@ -29,6 +35,7 @@ class ExampleLayer : public Layer {
 
     std::shared_ptr<Shader> m_CerberusShader;
     std::shared_ptr<Shader> m_FullScreenQuadShader;
+    std::shared_ptr<Shader> m_PureMesh;
 
     std::shared_ptr<Framebuffer> m_TestFramebuffer;
 
@@ -45,13 +52,14 @@ class ExampleLayer : public Layer {
     GLuint envTextureUnfiltered, envTextureEquirect;
 
     bool m_RenderModel = false;
-    bool m_ShowDepth = false;
+    bool m_ShowDepthFromLight = false;
 
     public:
     ExampleLayer() : Layer("Example") {
         apiInfo = Renderer::GetAPIInfo();
 
-        m_Camera.reset(new PerspectiveCamera(90, 16.0 / 9.0, 1.f, 100));
+        m_Camera.reset(new PerspectiveCamera(90, 16.0 / 9.0, 1.f, 10000));
+        m_Light.reset(new DirectionalLight(glm::vec3(0.0, 1.0, 0.0), glm::vec3(1.0, 1.0, 1.0)));
 
         m_Cerberus.reset(Model::Create("Sandbox/assets/models/Cerberus_LP.FBX"));
         m_CerberusAlbedo.reset(Texture::Create("Sandbox/assets/textures/Cerberus_A.tga"));
@@ -69,8 +77,20 @@ class ExampleLayer : public Layer {
         m_FullScreenQuadShader->Attach(ShaderStage::Fragment, "Sandbox/shaders/quad.fs");
         m_FullScreenQuadShader->Link();
 
+        m_PureMesh.reset(Shader::Create());
+        m_PureMesh->Attach(ShaderStage::Vertex, "Sandbox/shaders/mesh.vs");
+        m_PureMesh->Attach(ShaderStage::Fragment, "Sandbox/shaders/mesh.fs");
+        m_PureMesh->Link();
+
         m_SphereMesh = Primitives::Sphere(10, 32, 32);
         m_ScreenQuad = Primitives::FullscreenQuad();
+        m_Ground = Primitives::FullscreenQuad();
+        m_GroundTransformation = glm::translate(m_GroundTransformation, glm::vec3(0.0, -10.0, 0.0));
+        m_GroundTransformation = glm::rotate(m_GroundTransformation, glm::radians(-90.f), glm::vec3(1.0, 0.0, 0.0));
+        m_GroundTransformation = glm::scale(m_GroundTransformation, glm::vec3(100.0));
+
+        // Textures by Kenny!
+        m_GroundTexture.reset(Texture::Create("Sandbox/assets/textures/PNG/Light/texture_01.png"));
 
         FramebufferSpecification spec;
         spec.width = Application::Get().GetWindow().GetWidth();
@@ -87,7 +107,10 @@ class ExampleLayer : public Layer {
             m_CerberusShader->ReloadShader();
         }
 
-        if (m_ShowDepth) m_TestFramebuffer->Bind();
+        if (m_ShowDepthFromLight) {
+            m_TestFramebuffer->Bind();
+            m_CerberusShader->SetMat4("VP", m_Light->ComputeShadowFrustum(m_Camera->GetFrustumCorners()));
+        }
 
         RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
         RenderCommand::Clear();
@@ -95,8 +118,10 @@ class ExampleLayer : public Layer {
         m_CerberusShader->Bind();
         Renderer::BeginScene(m_Camera);
 
-        m_CerberusShader->SetVec3("u_DirLight.direction", m_LightDirection);
-        m_CerberusShader->SetVec3("u_DirLight.radiance", m_LightRadiance);
+        m_CerberusShader->SetMat4("modelMatrix", glm::mat4(1.0));
+
+        m_CerberusShader->SetVec3("u_DirLight.direction", m_Light->m_LightDirection);
+        m_CerberusShader->SetVec3("u_DirLight.radiance", m_Light->m_LightRadiance);
 
         if (m_RenderModel) {
             m_CerberusShader->BindTexture("material.albedoTexture", m_CerberusAlbedo);
@@ -122,17 +147,13 @@ class ExampleLayer : public Layer {
             Renderer::Submit(m_SphereMesh, m_CerberusShader);
         }
 
+        m_PureMesh->Bind();
+        m_PureMesh->BindTexture("u_Tex", m_GroundTexture);
+
+        m_PureMesh->SetMat4("modelMatrix", m_GroundTransformation);
+        Renderer::Submit(m_Ground, m_PureMesh);
+
         Renderer::EndScene();
-
-        if (m_ShowDepth) {
-            std::shared_ptr<Texture> depthTexture = m_TestFramebuffer->GetDepthAttachment();
-            m_FullScreenQuadShader->Bind();
-            m_FullScreenQuadShader->BindTexture("u_Tex", depthTexture);
-
-            m_TestFramebuffer->Unbind();
-
-            Renderer::DrawToScreen(m_ScreenQuad, m_FullScreenQuadShader);
-        }
     }
 
     virtual void OnImGuiRender(Timestep ts) override {
@@ -154,8 +175,8 @@ class ExampleLayer : public Layer {
 
             ImGui::Spacing();
 
-            ImGui::SliderFloat3("Light Direction", &m_LightDirection.x, -1.0f, 1.0f);
-            ImGui::ColorEdit3("Light Color", &m_LightRadiance.x);
+            ImGui::SliderFloat3("Light Direction", &m_Light->m_LightDirection.x, -1.0f, 1.0f);
+            ImGui::ColorEdit3("Light Color", &m_Light->m_LightRadiance.x);
 
             if (!m_RenderModel) {
                 ImGui::Spacing();
@@ -169,10 +190,6 @@ class ExampleLayer : public Layer {
             ImGui::Spacing();
             ImGui::Separator();
             ImGui::Spacing();
-
-            if (ImGui::Button(m_ShowDepth ? "Show depth ON" : "Show depth OFF")) {
-                m_ShowDepth = !m_ShowDepth;
-            }
         }
         ImGui::End();
     }

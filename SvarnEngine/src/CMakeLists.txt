@@ -19,12 +19,16 @@
     "Svarn/ImGui/ImGuiLayer.h"
 
     "Svarn/Scene/Camera.h"
+    "Svarn/Scene/DirectionalLight.cpp"
+    "Svarn/Scene/DirectionalLight.h"
     "Svarn/Scene/PerspectiveCamera.cpp"
     "Svarn/Scene/PerspectiveCamera.h"
 
     "Svarn/Log.cpp"
     "Svarn/Log.h"
     "Svarn/Window.h"
+
+    "Svarn/Math/Transform.h"
 
     "Svarn/KeyCodes.h"
 

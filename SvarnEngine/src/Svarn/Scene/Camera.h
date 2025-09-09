@@ -17,6 +17,24 @@ namespace Svarn {
         const glm::vec3& GetPosition() const { return m_Position; }
         const glm::quat& GetRotation() const { return m_Rotation; }
 
+        public:
+        std::array<glm::vec3, 8> GetFrustumCorners() {
+            const glm::mat4 invVP = glm::inverse(m_ProjectionMatrix * m_ViewMatrix);
+
+            const float ndc[2] = {-1.0f, 1.0f};
+
+            std::array<glm::vec3, 8> c;
+            int idx = 0;
+            for (int rx = 0; rx < 2; ++rx)
+                for (int ty = 0; ty < 2; ++ty)
+                    for (int zf = 0; zf < 2; ++zf) {
+                        glm::vec4 p = invVP * glm::vec4(ndc[rx], ndc[ty], ndc[zf], 1.0f);
+                        p /= p.w;
+                        c[idx++] = glm::vec3(p);
+                    }
+            return c;
+        }
+
         protected:
         glm::vec3 m_Position;
         glm::quat m_Rotation;
