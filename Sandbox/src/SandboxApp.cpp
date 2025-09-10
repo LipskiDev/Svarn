@@ -11,6 +11,7 @@
 #include <Svarn/Scene/PerspectiveCamera.h>
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_transform.hpp>
+#include <filesystem>
 
 using namespace Svarn;
 
@@ -22,8 +23,8 @@ class ExampleLayer : public Layer {
     std::shared_ptr<Mesh> m_ScreenQuad;
 
     std::shared_ptr<Mesh> m_Ground;
-    glm::mat4 m_GroundTransformation = glm::mat4(1.0);
     std::shared_ptr<Texture> m_GroundTexture;
+    Material m_GroundMaterial = Material::New();
 
     std::shared_ptr<Model> m_Cerberus;
     std::shared_ptr<Texture> m_CerberusAlbedo;
@@ -38,6 +39,8 @@ class ExampleLayer : public Layer {
     std::shared_ptr<Shader> m_PureMesh;
 
     std::shared_ptr<Framebuffer> m_TestFramebuffer;
+
+    Material m_sphereMaterial = Material::New();
 
     // PBR Variables
     glm::vec3 m_SphereAlbedo = glm::vec3(1.0, 0.0, 0.0);
@@ -83,13 +86,15 @@ class ExampleLayer : public Layer {
         m_PureMesh->Link();
 
         m_SphereMesh = Primitives::Sphere(10, 32, 32);
+        m_SphereMesh->SetMaterial(m_sphereMaterial);
         m_ScreenQuad = Primitives::FullscreenQuad();
         m_Ground = Primitives::FullscreenQuad();
-        m_GroundTransformation = glm::translate(m_GroundTransformation, glm::vec3(0.0, -10.0, 0.0));
-        m_GroundTransformation = glm::rotate(m_GroundTransformation, glm::radians(-90.f), glm::vec3(1.0, 0.0, 0.0));
-        m_GroundTransformation = glm::scale(m_GroundTransformation, glm::vec3(100.0));
+        m_GroundMaterial.SetAlbedoTexture(m_GroundTexture);
 
-        // Textures by Kenny!
+        Material cerberusMaterial = Material::FromTextures(m_CerberusAlbedo, m_CerberusNormals, m_CerberusRoughness, m_CerberusMetallic);
+
+        m_Cerberus->SetMaterial(cerberusMaterial);
+
         m_GroundTexture.reset(Texture::Create("Sandbox/assets/textures/PNG/Light/texture_01.png"));
 
         FramebufferSpecification spec;
@@ -107,11 +112,6 @@ class ExampleLayer : public Layer {
             m_CerberusShader->ReloadShader();
         }
 
-        if (m_ShowDepthFromLight) {
-            m_TestFramebuffer->Bind();
-            m_CerberusShader->SetMat4("VP", m_Light->ComputeShadowFrustum(m_Camera->GetFrustumCorners()));
-        }
-
         RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
         RenderCommand::Clear();
 
@@ -124,34 +124,16 @@ class ExampleLayer : public Layer {
         m_CerberusShader->SetVec3("u_DirLight.radiance", m_Light->m_LightRadiance);
 
         if (m_RenderModel) {
-            m_CerberusShader->BindTexture("material.albedoTexture", m_CerberusAlbedo);
-            m_CerberusShader->BindTexture("material.normalTexture", m_CerberusNormals);
-            m_CerberusShader->BindTexture("material.roughnessTexture", m_CerberusRoughness);
-            m_CerberusShader->BindTexture("material.metallicTexture", m_CerberusMetallic);
-            m_CerberusShader->SetBool("material.useAlbedoTexture", true);
-            m_CerberusShader->SetBool("material.useNormalTexture", true);
-            m_CerberusShader->SetBool("material.useRoughnessTexture", true);
-            m_CerberusShader->SetBool("material.useMetallicTexture", true);
-
             Renderer::Submit(m_Cerberus, m_CerberusShader);
         } else {
-            m_CerberusShader->SetVec3("material.albedo", m_SphereAlbedo);
-            m_CerberusShader->SetFloat("material.roughness", m_SphereRoughness);
-            m_CerberusShader->SetFloat("material.metallic", m_SphereMetallic);
-
-            m_CerberusShader->SetBool("material.useAlbedoTexture", false);
-            m_CerberusShader->SetBool("material.useNormalTexture", false);
-            m_CerberusShader->SetBool("material.useRoughnessTexture", false);
-            m_CerberusShader->SetBool("material.useMetallicTexture", false);
-
             Renderer::Submit(m_SphereMesh, m_CerberusShader);
         }
 
         m_PureMesh->Bind();
         m_PureMesh->BindTexture("u_Tex", m_GroundTexture);
 
-        m_PureMesh->SetMat4("modelMatrix", m_GroundTransformation);
-        Renderer::Submit(m_Ground, m_PureMesh);
+        Transform t = Transform(glm::vec3(0.0f, -10.f, 0.0f), glm::vec3(100.f), glm::vec3(glm::radians(-90.0f), 0.0f, 0.0f));
+        Renderer::Submit(m_Ground, m_PureMesh, t);
 
         Renderer::EndScene();
     }

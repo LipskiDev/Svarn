@@ -18,11 +18,11 @@ namespace Svarn {
             m_Rotation = glm::quat(rotation);
         }
 
-        glm::mat4 GetModelMatrix() {
+        glm::mat4 GetModelMatrix() const {
             glm::mat4 base = glm::mat4(1.0);
-            // base = glm::translate(base, m_Translation);
-            // base = base * glm::toMat4(m_Rotation);
-            // base = glm::scale(base, m_Scale);
+            base = glm::translate(base, m_Translation);
+            base = base * glm::toMat4(m_Rotation);
+            base = glm::scale(base, m_Scale);
             return base;
         }
 

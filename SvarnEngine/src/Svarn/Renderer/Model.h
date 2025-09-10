@@ -1,6 +1,8 @@
 #pragma once
 
+#include <Svarn/Renderer/Texture.h>
 #include <memory>
+#include "Svarn/Renderer/Material.h"
 #include "Svarn/Renderer/Mesh.h"
 #include "assimp/scene.h"
 namespace Svarn {
@@ -9,6 +11,9 @@ namespace Svarn {
         static Model* Create(const std::string& path);
 
         std::vector<std::shared_ptr<Mesh>> GetAllMeshes() const;
+
+        void SetMaterial(Material material) { m_Material = material; }
+        Material GetMaterial() { return m_Material; }
 
         private:
         Model(const std::string& path);
@@ -19,5 +24,6 @@ namespace Svarn {
         private:
         std::vector<std::shared_ptr<Mesh>> m_Meshes;
         std::string m_Directory;
+        Material m_Material;
     };
 }  // namespace Svarn

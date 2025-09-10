@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <memory>
 #include "Svarn/Renderer/Buffer.h"
+#include "Svarn/Renderer/Material.h"
 #include "Svarn/Renderer/VertexArray.h"
 
 namespace Svarn {
@@ -19,6 +20,10 @@ namespace Svarn {
         public:
         static Mesh* Create(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices);
 
+        void SetMaterial(Material material) { m_Material = material; }
+
+        Material GetMaterial() { return m_Material; }
+
         std::shared_ptr<VertexArray> GetVertexArray() const { return m_VAO; }
 
         private:
@@ -28,5 +33,7 @@ namespace Svarn {
         std::shared_ptr<VertexBuffer> m_VBO;
         std::shared_ptr<VertexArray> m_VAO;
         uint32_t m_IndexCount = 0;
+
+        Material m_Material;
     };
 }  // namespace Svarn

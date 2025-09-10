@@ -1,6 +1,7 @@
 #include <svpch.h>
 
 #include <Svarn/Renderer/Renderer.h>
+#include <filesystem>
 #include <memory>
 #include "Svarn/Log.h"
 #include "Svarn/Renderer/VertexArray.h"
@@ -11,13 +12,14 @@
 
 namespace Svarn {
 
+    std::queue<RenderObject> Renderer::renderQueue = std::queue<RenderObject>();
+
+    std::vector<std::shared_ptr<Shader>> Renderer::loadedShaders = std::vector<std::shared_ptr<Shader>>();
+
     glm::mat4 m_ViewMatrix;
     glm::mat4 m_ProjectionMatrix;
     glm::mat4 m_VP;
     glm::vec3 m_CameraPosition;
-
-    std::vector<std::shared_ptr<Shader>> loadedShaders;
-    std::queue<RenderObject> renderQueue;
 
     void Renderer::BeginScene(const std::shared_ptr<Camera>& camera) {
         m_ViewMatrix = camera->GetViewMatrix();
@@ -29,17 +31,19 @@ namespace Svarn {
     void Renderer::EndScene() {
         while (!renderQueue.empty()) {
             const RenderObject& obj = renderQueue.front();
-            std::shared_ptr<Shader> shader = obj.m_Shader;
-            shader->Bind();
-            loadedShaders.push_back(shader);
-            shader->SetMat4("VP", m_VP);
-            // // shader->SetMat4("modelMatrix", obj.transform.GetModelMatrix());
-            shader->SetMat4("viewMatrix", m_ViewMatrix);
-            shader->SetMat4("projectionMatrix", m_ProjectionMatrix);
+            obj.vertexArray->Bind();
+            obj.m_Shader->Bind();
+            loadedShaders.push_back(obj.m_Shader);
+            obj.m_Shader->SetMat4("VP", m_VP);
+            obj.m_Shader->SetMat4("modelMatrix", obj.transform.GetModelMatrix());
+            obj.m_Shader->SetMat4("viewMatrix", m_ViewMatrix);
+            obj.m_Shader->SetMat4("projectionMatrix", m_ProjectionMatrix);
 
             obj.vertexArray->Bind();
-            RenderCommand::DrawIndexed(obj.vertexArray);
 
+            obj.material.BindToShader(obj.m_Shader);
+
+            RenderCommand::DrawIndexed(obj.vertexArray);
             renderQueue.pop();
         }
 
@@ -51,13 +55,14 @@ namespace Svarn {
 
     void Renderer::Clear() { RenderCommand::Clear(); }
 
-    void Renderer::Submit(const std::shared_ptr<VertexArray>& vertexArray, const std::shared_ptr<Shader>& shader, const Transform& t) {
-        RenderObject obj(vertexArray, t, shader);
+    void Renderer::Submit(const std::shared_ptr<VertexArray>& vertexArray, const std::shared_ptr<Shader>& shader, const Material& material,
+                          const Transform& t) {
+        RenderObject obj(vertexArray, t, shader, material);
         renderQueue.push(obj);
     }
 
     void Renderer::Submit(const std::shared_ptr<Mesh>& mesh, const std::shared_ptr<Shader>& shader, const Transform& t) {
-        RenderObject obj(mesh->GetVertexArray(), t, shader);
+        RenderObject obj(mesh->GetVertexArray(), t, shader, mesh->GetMaterial());
         renderQueue.push(obj);
     }
 
@@ -65,7 +70,7 @@ namespace Svarn {
         auto meshes = model->GetAllMeshes();
 
         for (auto& mesh : meshes) {
-            RenderObject obj(mesh->GetVertexArray(), t, shader);
+            RenderObject obj(mesh->GetVertexArray(), t, shader, mesh->GetMaterial());
             renderQueue.push(obj);
         }
     }
