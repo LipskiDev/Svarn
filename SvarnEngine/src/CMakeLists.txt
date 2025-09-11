@@ -42,6 +42,8 @@
     "Svarn/Renderer/Buffer.h"
     "Svarn/Renderer/Framebuffer.cpp"
     "Svarn/Renderer/Framebuffer.h"
+    "Svarn/Renderer/Material.cpp"
+    "Svarn/Renderer/Material.h"
     "Svarn/Renderer/Mesh.cpp"
     "Svarn/Renderer/Mesh.h"
     "Svarn/Renderer/Model.cpp"

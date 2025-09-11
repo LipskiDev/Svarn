@@ -1,21 +1,25 @@
 #include <svpch.h>
 
 #include <Svarn/Renderer/Material.h>
+#include "Svarn/Log.h"
 #include "Svarn/Renderer/Shader.h"
-#include "imgui.h"
 
 namespace Svarn {
-    Material Material::FromTextures(std::shared_ptr<Texture> albedoTexture, std::shared_ptr<Texture> normalTexture,
+    Material Material::FromTextures(std::string materialName, std::shared_ptr<Texture> albedoTexture, std::shared_ptr<Texture> normalTexture,
                                     std::shared_ptr<Texture> roughnessTexture, std::shared_ptr<Texture> metallicTexture) {
-        return Material(albedoTexture, normalTexture, roughnessTexture, metallicTexture);
+        return Material(materialName, albedoTexture, normalTexture, roughnessTexture, metallicTexture);
     }
 
-    Material Material::FromValues(glm::vec3 color, float roughness, float metallic) { return Material(color, roughness, metallic); }
+    Material Material::FromValues(std::string materialName, glm::vec3 color, float roughness, float metallic) {
+        return Material(materialName, color, roughness, metallic);
+    }
 
-    Material Material::New() { return Material(); }
+    Material Material::New() { return Material("New Material", glm::vec3(1.0, 1.0, 1.0), 1.0, 1.0); }
 
-    Material::Material(std::shared_ptr<Texture> albedoTexture, std::shared_ptr<Texture> normalTexture, std::shared_ptr<Texture> roughnessTexture,
-                       std::shared_ptr<Texture> metallicTexture) {
+    Material::Material(std::string materialName, std::shared_ptr<Texture> albedoTexture, std::shared_ptr<Texture> normalTexture,
+                       std::shared_ptr<Texture> roughnessTexture, std::shared_ptr<Texture> metallicTexture) {
+        m_MaterialName = materialName;
+
         m_AlbedoTexture = albedoTexture;
         m_NormalTexture = normalTexture;
         m_RoughnessTexture = roughnessTexture;
@@ -27,7 +31,8 @@ namespace Svarn {
         m_UseMetallicTexture = true;
     }
 
-    Material::Material(glm::vec3 color, float roughness, float metallic) {
+    Material::Material(std::string materialName, glm::vec3 color, float roughness, float metallic) {
+        m_MaterialName = materialName;
         m_AlbedoValue = color;
         m_RoughnessValue = roughness;
         m_MetallicValue = metallic;

@@ -34,6 +34,6 @@ namespace Svarn {
         std::shared_ptr<VertexArray> m_VAO;
         uint32_t m_IndexCount = 0;
 
-        Material m_Material;
+        Material m_Material = Material::New();
     };
 }  // namespace Svarn

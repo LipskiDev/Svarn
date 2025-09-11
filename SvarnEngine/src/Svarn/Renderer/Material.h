@@ -5,10 +5,12 @@
 namespace Svarn {
     class Material {
         public:
-        static Material FromTextures(std::shared_ptr<Texture> albedoTexture, std::shared_ptr<Texture> normalTexture,
+        std::string m_MaterialName;
+
+        static Material FromTextures(std::string materialName, std::shared_ptr<Texture> albedoTexture, std::shared_ptr<Texture> normalTexture,
                                      std::shared_ptr<Texture> roughnessTexture, std::shared_ptr<Texture> metallicTexture);
 
-        static Material FromValues(glm::vec3 color, float roughness, float metallic);
+        static Material FromValues(std::string materialName, glm::vec3 color, float roughness, float metallic);
 
         static Material New();
 
@@ -24,12 +26,11 @@ namespace Svarn {
         void SetMetallicTexture(std::shared_ptr<Texture> metallicTexture);
 
         private:
-        Material(std::shared_ptr<Texture> albedoTexture, std::shared_ptr<Texture> normalTexture, std::shared_ptr<Texture> roughnessTexture,
-                 std::shared_ptr<Texture> metallicTexture);
+        Material(std::string materialName, std::shared_ptr<Texture> albedoTexture, std::shared_ptr<Texture> normalTexture,
+                 std::shared_ptr<Texture> roughnessTexture, std::shared_ptr<Texture> metallicTexture);
 
-        Material(glm::vec3 color, float roughness, float metallic);
+        Material(std::string materialName, glm::vec3 color, float roughness, float metallic);
 
-        Material();
         bool m_UseAlbedoTexture = false;
         bool m_UseNormalTexture = false;
         bool m_UseRoughnessTexture = false;

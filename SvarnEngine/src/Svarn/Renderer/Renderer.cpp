@@ -16,10 +16,7 @@ namespace Svarn {
 
     std::vector<std::shared_ptr<Shader>> Renderer::loadedShaders = std::vector<std::shared_ptr<Shader>>();
 
-    glm::mat4 m_ViewMatrix;
-    glm::mat4 m_ProjectionMatrix;
-    glm::mat4 m_VP;
-    glm::vec3 m_CameraPosition;
+    std::shared_ptr<DirectionalLight> Renderer::m_DirectionalLight = nullptr;
 
     void Renderer::BeginScene(const std::shared_ptr<Camera>& camera) {
         m_ViewMatrix = camera->GetViewMatrix();
@@ -38,11 +35,16 @@ namespace Svarn {
             obj.m_Shader->SetMat4("modelMatrix", obj.transform.GetModelMatrix());
             obj.m_Shader->SetMat4("viewMatrix", m_ViewMatrix);
             obj.m_Shader->SetMat4("projectionMatrix", m_ProjectionMatrix);
-
-            obj.vertexArray->Bind();
+            obj.m_Shader->SetVec3("u_CameraPosition", m_CameraPosition);
 
             obj.material.BindToShader(obj.m_Shader);
 
+            if (m_DirectionalLight) {
+                obj.m_Shader->SetVec3("u_DirLight.direction", m_DirectionalLight->m_LightDirection);
+                obj.m_Shader->SetVec3("u_DirLight.radiance", m_DirectionalLight->m_LightRadiance);
+            }
+
+            obj.vertexArray->Bind();
             RenderCommand::DrawIndexed(obj.vertexArray);
             renderQueue.pop();
         }
@@ -68,12 +70,14 @@ namespace Svarn {
 
     void Renderer::Submit(const std::shared_ptr<Model>& model, const std::shared_ptr<Shader>& shader, const Transform& t) {
         auto meshes = model->GetAllMeshes();
-
         for (auto& mesh : meshes) {
             RenderObject obj(mesh->GetVertexArray(), t, shader, mesh->GetMaterial());
+
             renderQueue.push(obj);
         }
     }
+
+    void Renderer::Submit(const std::shared_ptr<DirectionalLight>& directionalLight) { m_DirectionalLight = directionalLight; };
 
     // TODO: implement shader library so that i can just call 'DrawToScreen(texture);' and the correct shader + quad is chosen and generated
     void Renderer::DrawToScreen(std::shared_ptr<Mesh>& mesh, std::shared_ptr<Shader>& shader) {
