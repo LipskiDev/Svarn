@@ -99,7 +99,7 @@ namespace Svarn {
         return mesh;
     }
 
-    std::shared_ptr<Mesh> Primitives::FullscreenQuad() {
+    std::shared_ptr<Mesh> Primitives::Quad() {
         std::vector<Vertex> verts;
         std::vector<uint32_t> indices;
 

@@ -35,6 +35,18 @@ namespace Svarn {
             return c;
         }
 
+        glm::vec3 GetFrustumCenter() {
+            const std::array<glm::vec3, 8> corners = GetFrustumCorners();
+
+            glm::vec3 center(0.0f);
+            for (const auto& corner : corners) {
+                center += corner;
+            }
+
+            center /= static_cast<float>(corners.size());
+            return center;
+        }
+
         protected:
         glm::vec3 m_Position;
         glm::quat m_Rotation;

@@ -10,7 +10,7 @@
 namespace Svarn {
 
     VertexArray* VertexArray::Create() {
-        switch (Renderer::GetAPI()) {
+        switch (GetRenderer().GetAPI()) {
             case RendererAPI::API::None:
                 SV_CORE_ASSERT(false, "RendererAPI::None not supported.");
                 return nullptr;

@@ -13,7 +13,7 @@ namespace Svarn {
     struct TextureSpecification {
         uint32_t width, height;
         TextureFormat format = TextureFormat::RGBA8;
-        TextureFiltering filtering = TextureFiltering::Linear;
+        TextureFiltering filtering = TextureFiltering::Nearest;
         TextureWrapping wrapping = TextureWrapping::Repeat;
         bool generateMips = false;
     };

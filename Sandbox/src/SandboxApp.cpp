@@ -4,6 +4,7 @@
 #include "Svarn/Application.h"
 #include "Svarn/Renderer/Framebuffer.h"
 #include "Svarn/Renderer/Primitives.h"
+#include "Svarn/Renderer/ShaderLibrary.h"
 #include "Svarn/Renderer/Texture.h"
 #include "Svarn/Layer.h"
 #include "Svarn/Scene/DirectionalLight.h"
@@ -11,7 +12,6 @@
 #include <Svarn/Scene/PerspectiveCamera.h>
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_transform.hpp>
-#include <filesystem>
 
 using namespace Svarn;
 
@@ -20,7 +20,6 @@ class ExampleLayer : public Layer {
     std::shared_ptr<DirectionalLight> m_Light;
 
     std::shared_ptr<Mesh> m_SphereMesh;
-    std::shared_ptr<Mesh> m_ScreenQuad;
 
     std::shared_ptr<Mesh> m_Ground;
     std::shared_ptr<Texture> m_GroundTexture;
@@ -36,13 +35,8 @@ class ExampleLayer : public Layer {
     Material m_CerberusMaterial = Material::New();
 
     Transform m_CerberusTransform = Transform(glm::vec3(-65.0, 30.0, 0.0), glm::vec3(1.0), glm::vec3(0.0f, glm::radians(90.0f), glm::radians(90.0f)));
-    std::shared_ptr<Texture> m_EquirectEnvironmentTexture;
 
     std::shared_ptr<Shader> m_PBRShader;
-    std::shared_ptr<Shader> m_FullScreenQuadShader;
-    std::shared_ptr<Shader> m_PureMesh;
-
-    std::shared_ptr<Framebuffer> m_TestFramebuffer;
 
     Material m_sphereMaterial = Material::New();
 
@@ -51,19 +45,13 @@ class ExampleLayer : public Layer {
     float m_SphereRoughness = 1.0;
     float m_SphereMetallic = 1.0;
 
-    glm::vec3 m_LightDirection = glm::vec3(0.0, -1.0, 0.0);
-    glm::vec3 m_LightRadiance = glm::vec3(1.0, 1.0, 1.0);
-
     RendererAPIInfo apiInfo;
 
-    GLuint envTextureUnfiltered, envTextureEquirect;
-
-    bool m_RenderModel = true;
-    bool m_ShowDepthFromLight = false;
+    bool m_RenderModel = false;
 
     public:
     ExampleLayer() : Layer("Example") {
-        apiInfo = Renderer::GetAPIInfo();
+        apiInfo = GetRenderer().GetAPIInfo();
 
         m_Camera.reset(new PerspectiveCamera(90, 16.0 / 9.0, 1.f, 10000));
         m_Light.reset(new DirectionalLight(glm::vec3(0.0, -1.0, 0.0), glm::vec3(1.0, 1.0, 1.0)));
@@ -80,63 +68,39 @@ class ExampleLayer : public Layer {
 
         m_Cerberus->SetMaterial(m_CerberusMaterial);
 
-        m_PBRShader.reset(Shader::Create());
-        m_PBRShader->Attach(ShaderStage::Vertex, "Sandbox/shaders/pbr.vs");
-        m_PBRShader->Attach(ShaderStage::Fragment, "Sandbox/shaders/pbr.fs");
-        m_PBRShader->Link();
+        m_PBRShader = GetShaderLibrary().Get("PBR");
 
-        m_FullScreenQuadShader.reset(Shader::Create());
-        m_FullScreenQuadShader->Attach(ShaderStage::Vertex, "Sandbox/shaders/quad.vs");
-        m_FullScreenQuadShader->Attach(ShaderStage::Fragment, "Sandbox/shaders/quad.fs");
-        m_FullScreenQuadShader->Link();
-
-        m_PureMesh.reset(Shader::Create());
-        m_PureMesh->Attach(ShaderStage::Vertex, "Sandbox/shaders/mesh.vs");
-        m_PureMesh->Attach(ShaderStage::Fragment, "Sandbox/shaders/mesh.fs");
-        m_PureMesh->Link();
-
-        m_SphereMesh = Primitives::Sphere(10, 32, 32);
+        m_SphereMesh = Primitives::Sphere(10, 64, 64);
         m_SphereMesh->SetMaterial(m_sphereMaterial);
-        m_ScreenQuad = Primitives::FullscreenQuad();
-        m_Ground = Primitives::FullscreenQuad();
+        m_Ground = Primitives::Quad();
 
         m_GroundTexture.reset(Texture::Create("Sandbox/assets/textures/PNG/Green/texture_01.png"));
         m_GroundTexture->SetFiltering(TextureFiltering::Nearest, TextureFiltering::Nearest);
-        m_GroundMaterial.SetAlbedoTexture(m_GroundTexture);
         m_GroundMaterial.SetMetallicValue(0.0);
+        m_GroundMaterial.SetRoughnessValue(1.0);
+        m_GroundMaterial.SetAlbedoTexture(m_GroundTexture);
         m_Ground->SetMaterial(m_GroundMaterial);
-
-        FramebufferSpecification spec;
-        spec.width = Application::Get().GetWindow().GetWidth();
-        spec.height = Application::Get().GetWindow().GetHeight();
-        spec.attachments = {{TextureFormat::RGBA8, AttachmentType::Color}, {TextureFormat::Depth32F, AttachmentType::Depth}};
-
-        m_TestFramebuffer.reset(Framebuffer::Create(spec));
     }
 
     void OnUpdate(Timestep ts) override {
         m_Camera->OnUpdate(ts);
 
+        GetRenderer().Submit(m_Light);
         if (Input::IsKeyPressed(SV_KEY_R)) {
             m_PBRShader->ReloadShader();
         }
 
-        RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
-        RenderCommand::Clear();
-
-        Renderer::BeginScene(m_Camera);
-
-        Renderer::Submit(m_Light);
+        GetRenderer().BeginScene(m_Camera);
 
         if (m_RenderModel) {
-            Renderer::Submit(m_Cerberus, m_PBRShader, m_CerberusTransform);
+            GetRenderer().Submit(m_Cerberus, m_CerberusTransform);
         } else {
-            Renderer::Submit(m_SphereMesh, m_PBRShader);
+            GetRenderer().Submit(m_SphereMesh);
         }
 
-        Renderer::Submit(m_Ground, m_PBRShader, m_GroundTransform);
+        GetRenderer().Submit(m_Ground, m_GroundTransform);
 
-        Renderer::EndScene();
+        GetRenderer().EndScene();
     }
 
     virtual void OnImGuiRender(Timestep ts) override {

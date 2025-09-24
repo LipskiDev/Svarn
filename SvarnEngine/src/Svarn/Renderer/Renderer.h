@@ -1,24 +1,21 @@
 #pragma once
 
 #include <Svarn/Renderer/RenderCommand.h>
+#include "Svarn/Renderer/Framebuffer.h"
 #include "Svarn/Renderer/Mesh.h"
 #include "Svarn/Renderer/Model.h"
 #include "Svarn/Renderer/Shader.h"
 #include "Svarn/Scene/Camera.h"
 #include "Svarn/Scene/DirectionalLight.h"
 #include <Svarn/Math/Transform.h>
-#include <queue>
 
 namespace Svarn {
     struct RenderObject {
         std::shared_ptr<VertexArray> vertexArray;
         Transform transform;
-        std::shared_ptr<Shader> m_Shader;
         Material material;
 
-        RenderObject(std::shared_ptr<VertexArray> va, Transform t, std::shared_ptr<Shader> shader, Material mat = Material::New())
-            : transform(t), material(mat) {
-            m_Shader = shader;
+        RenderObject(std::shared_ptr<VertexArray> va, Transform t, Material mat = Material::New()) : transform(t), material(mat) {
             vertexArray = va;
             this->material = mat;
         }
@@ -26,30 +23,49 @@ namespace Svarn {
 
     class Renderer {
         public:
-        static void BeginScene(const std::shared_ptr<Camera>& camera);
-        static void EndScene();
+        void Init();
+        void BeginScene(const std::shared_ptr<Camera>& camera);
+        void EndScene();
 
-        static void Submit(const std::shared_ptr<VertexArray>& vertexArray, const std::shared_ptr<Shader>& shader, const Material& m,
-                           const Transform& t = Transform::Default());
+        void Submit(const std::shared_ptr<VertexArray>& vertexArray, const Material& m, const Transform& t = Transform::Default());
 
-        static void Submit(const std::shared_ptr<Mesh>& mesh, const std::shared_ptr<Shader>& shader, const Transform& t = Transform::Default());
-        static void Submit(const std::shared_ptr<Model>& model, const std::shared_ptr<Shader>& shader, const Transform& t = Transform::Default());
-        static void Submit(const std::shared_ptr<DirectionalLight>& directionalLight);
-        static void DrawToScreen(std::shared_ptr<Mesh>& mesh, std::shared_ptr<Shader>& shader);
+        void Submit(const std::shared_ptr<Mesh>& mesh, const Transform& t = Transform::Default());
+        void Submit(const std::shared_ptr<Model>& model, const Transform& t = Transform::Default());
+        void Submit(const std::shared_ptr<DirectionalLight>& directionalLight);
+        void DrawToScreen(std::shared_ptr<Mesh>& mesh, std::shared_ptr<Shader>& shader);
 
-        static void Clear();
+        void Clear();
 
-        inline static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
-        static RendererAPIInfo GetAPIInfo() { return RenderCommand::GetAPIInfo(); }
+        inline RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
+        RendererAPIInfo GetAPIInfo() { return RenderCommand::GetAPIInfo(); }
 
         private:
-        static std::vector<std::shared_ptr<Shader>> loadedShaders;
-        static std::queue<RenderObject> renderQueue;
-        static std::shared_ptr<DirectionalLight> m_DirectionalLight;
+        std::vector<std::shared_ptr<Shader>> loadedShaders;
+        std::vector<RenderObject> renderQueue;
+        std::shared_ptr<DirectionalLight> m_DirectionalLight;
 
-        static glm::mat4 m_ViewMatrix;
-        static glm::mat4 m_ProjectionMatrix;
-        static glm::mat4 m_VP;
-        static glm::vec3 m_CameraPosition;
+        std::shared_ptr<Shader> m_DepthShader;
+        std::shared_ptr<Shader> m_PBRShader;
+
+        // General Camera
+        glm::mat4 m_ViewMatrix;
+        glm::mat4 m_ProjectionMatrix;
+        glm::mat4 m_VP;
+        std::shared_ptr<Camera> m_Camera;
+
+        glm::mat4 depthViewMatrix = glm::lookAt(glm::vec3(0.0f, 200.0f, 0.0f),  // light position, above the scene
+                                                glm::vec3(0.0f, 0.0f, 0.0f),    // looking at the world origin
+                                                glm::vec3(0.0f, 0.0f, 1.0f)     // up direction (so Y is "down light")
+        );
+        glm::mat4 depthProjectionMatrix = glm::ortho(-100.0f, 100.0f,  // left, right
+                                                     -100.0f, 100.0f,  // bottom, top
+                                                     0.1f, 200.0f      // near, far
+        );
+        // Shadow Mapping
+        std::shared_ptr<Framebuffer> m_DepthMapLight;
     };
+
+    SVARN_API Renderer& GetRenderer();
+    SVARN_API const void* RendererAddress();
+
 }  // namespace Svarn

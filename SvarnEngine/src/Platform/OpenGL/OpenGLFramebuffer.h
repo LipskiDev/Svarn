@@ -11,6 +11,7 @@ namespace Svarn {
 
         void Bind() override;
         void Unbind() override;
+        void Clear() override;
 
         void Resize(uint32_t width, uint32_t height) override;
 

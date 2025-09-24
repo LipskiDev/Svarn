@@ -23,8 +23,6 @@ namespace Svarn {
 
         m_ViewMatrix = glm::inverse(worldFromCamera);
         m_ViewProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;
-        SV_CORE_INFO("VP = {0}", m_ViewProjectionMatrix);
-        SV_CORE_INFO("V*P = {0}", m_ProjectionMatrix * m_ViewMatrix);
     };
 
     void PerspectiveCamera::OnUpdate(Timestep ts) {

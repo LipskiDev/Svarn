@@ -59,6 +59,8 @@
     "Svarn/Renderer/RenderingContext.h"
     "Svarn/Renderer/Shader.cpp"
     "Svarn/Renderer/Shader.h"
+    "Svarn/Renderer/ShaderLibrary.cpp"
+    "Svarn/Renderer/ShaderLibrary.h"
     "Svarn/Renderer/Texture.cpp"
     "Svarn/Renderer/Texture.h"
     "Svarn/Renderer/VertexArray.cpp"

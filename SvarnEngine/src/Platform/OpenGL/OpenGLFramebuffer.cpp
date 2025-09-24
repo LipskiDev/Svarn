@@ -2,7 +2,9 @@
 
 #include <Platform/OpenGL/OpenGLFramebuffer.h>
 #include "Svarn/Core.h"
+#include "Svarn/Renderer/Texture.h"
 #include "glad/gl.h"
+#include <Svarn/Application.h>
 
 namespace Svarn {
 
@@ -23,6 +25,8 @@ namespace Svarn {
         ts.width = w;
         ts.height = h;
         ts.format = fmt;
+        ts.filtering = TextureFiltering::Nearest;
+        ts.wrapping = TextureWrapping::ClampToEdge;
         return ts;
     }
 
@@ -56,11 +60,6 @@ namespace Svarn {
             if (IsDepthFormat(ad.format)) {
                 m_DepthAttachment.reset(Texture::Create(ts));
 
-                if (ad.format == TextureFormat::Depth24) {
-                    m_DepthAttachment->SetFiltering(TextureFiltering::Linear, TextureFiltering::Linear);
-                    m_DepthAttachment->SetWrapping(TextureWrapping::ClampToEdge);
-                }
-
                 GLenum attach = (ad.format == TextureFormat::Depth24Stencil8) ? GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT;
 
                 glFramebufferTexture2D(GL_FRAMEBUFFER, attach, GL_TEXTURE_2D, m_DepthAttachment->m_RendererID, 0);
@@ -68,9 +67,6 @@ namespace Svarn {
             } else {
                 std::shared_ptr<Texture> colorTex;
                 colorTex.reset(Texture::Create(ts));
-
-                colorTex->SetFiltering(TextureFiltering::Linear, TextureFiltering::Linear);
-                colorTex->SetWrapping(TextureWrapping::ClampToEdge);
 
                 glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + colorIndex, GL_TEXTURE_2D, colorTex->m_RendererID, 0);
                 SV_CORE_INFO("Color Attachment ID: {0}", colorTex->m_RendererID);
@@ -99,7 +95,18 @@ namespace Svarn {
         glViewport(0, 0, m_Spec.width, m_Spec.height);
     }
 
-    void OpenGLFramebuffer::Unbind() { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
+    void OpenGLFramebuffer::Unbind() {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        int windowHeight = Application::Get().GetWindow().GetHeight();
+        int windowWidth = Application::Get().GetWindow().GetWidth();
+        glViewport(0, 0, windowWidth, windowHeight);
+    }
+
+    void OpenGLFramebuffer::Clear() {
+        Bind();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        Unbind();
+    }
 
     void OpenGLFramebuffer::Resize(uint32_t width, uint32_t height) {
         if (width == 0 || height == 0) return;

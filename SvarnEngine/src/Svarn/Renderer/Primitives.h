@@ -5,6 +5,6 @@ namespace Svarn {
     class Primitives {
         public:
         static std::shared_ptr<Mesh> Sphere(int radius, int slices, int stacks);
-        static std::shared_ptr<Mesh> FullscreenQuad();
+        static std::shared_ptr<Mesh> Quad();
     };
 }  // namespace Svarn

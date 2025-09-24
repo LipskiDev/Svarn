@@ -6,6 +6,9 @@
 #include <glad/gl.h>
 #include <GL/gl.h>
 #include "Svarn/Core.h"
+#include "Svarn/Log.h"
+#include "Svarn/Renderer/ShaderLibrary.h"
+#include <Svarn/Renderer/Renderer.h>
 
 namespace Svarn {
 
@@ -22,6 +25,7 @@ namespace Svarn {
         glDepthFunc(GL_LESS);
         glDepthMask(GL_TRUE);
         glClearDepth(1.0);
+        GetRenderer().Init();
     }
 
     void OpenGLRenderingContext::SwapBuffers() { glfwSwapBuffers(m_WindowHandle); }

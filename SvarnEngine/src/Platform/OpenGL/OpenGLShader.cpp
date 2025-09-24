@@ -2,15 +2,25 @@
 #include <Platform/OpenGL/OpenGLShader.h>
 #include <sys/types.h>
 #include "Svarn/Core.h"
+#include "Svarn/Log.h"
 #include "Svarn/Renderer/Shader.h"
 #include "glad/gl.h"
 #include "glm/gtc/type_ptr.hpp"
 
 namespace Svarn {
 
-    OpenGLShader::OpenGLShader() { m_ShaderID = glCreateProgram(); };
+    OpenGLShader::OpenGLShader() {
+        m_ShaderID = glCreateProgram();
+        SV_CORE_INFO("Creating Shader: {0}", m_ShaderID);
+    };
 
-    OpenGLShader::~OpenGLShader() { glDeleteShader(m_ShaderID); };
+    OpenGLShader::~OpenGLShader() {
+        SV_CORE_ERROR("Shader {0} is being deleted.", m_ShaderID);
+
+        glDeleteShader(m_ShaderID);
+    };
+
+    int OpenGLShader::GetShaderID() const { return m_ShaderID; };
 
     void OpenGLShader::Attach(ShaderStage stage, const std::string& path) {
         if (stage == ShaderStage::Compute) {
@@ -66,7 +76,10 @@ namespace Svarn {
     bool OpenGLShader::IsComputeShader() const { return m_IsCompute; }
 
     void OpenGLShader::Bind() { glUseProgram(m_ShaderID); };
-    void OpenGLShader::Unbind() { glDeleteProgram(m_ShaderID); };
+    void OpenGLShader::Unbind() {
+        glUseProgram(0);
+        m_ActiveTextures = 0;
+    };
 
     void OpenGLShader::Dispatch(uint32_t groupsX, uint32_t groupsY, uint32_t groupsZ) { glDispatchCompute(groupsX, groupsY, groupsZ); }
 
@@ -135,7 +148,7 @@ namespace Svarn {
             GLint maxLength = 0;
             glGetProgramiv(m_ShaderID, GL_INFO_LOG_LENGTH, &maxLength);
 
-            // The maxLength includes the NULL character
+            // The maxLength includesethe NULL character
             std::vector<GLchar> infoLog(maxLength);
             glGetProgramInfoLog(m_ShaderID, maxLength, &maxLength, &infoLog[0]);
             glDeleteProgram(m_ShaderID);

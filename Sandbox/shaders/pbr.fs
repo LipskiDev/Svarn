@@ -18,6 +18,8 @@ struct Material {
     float metallic;
 };
 
+uniform sampler2D s_DirectionalShadowMap;
+
 uniform Material material;
 
 uniform vec3 u_CameraPosition;
@@ -27,6 +29,7 @@ in vec3 v_Normal;
 in vec2 v_TexCoord;
 in vec4 v_Tangent;
 in mat3 v_TangentBasis;
+in vec4 v_ShadowCoord;
 
 const float Epsilon = 0.00001;
 
@@ -35,6 +38,34 @@ struct DirLight { vec3 direction; vec3 radiance; };
 uniform DirLight u_DirLight;
 
 const float PI = 3.14159265359;
+
+float DirectionalShadowCalculation(vec4 v_DirectionalLightSpacePos)
+{
+    vec3 projCoords = v_DirectionalLightSpacePos.xyz / v_DirectionalLightSpacePos.w;
+    projCoords = projCoords * 0.5 + 0.5;
+
+    float currentDepth = projCoords.z;
+
+    float bias = max(0.005 * (1.0 - dot(v_Normal, u_DirLight.direction)), 0.0005);
+
+
+    vec3 lightDir = normalize(u_DirLight.direction);
+    float shadow = 0.0;
+    vec2 texelSize = 1.0 / textureSize(s_DirectionalShadowMap, 0);
+    
+    for(int x = -1; x <= 1; ++x)
+    {
+        for(int y = -1; y <= 1; ++y)
+        {
+            float pcfDepth = texture(s_DirectionalShadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
+            shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+        }
+    }
+
+    shadow /= 9.0;
+
+    return shadow;
+}
 
 vec3 fresnelSchlick(float cosTheta, vec3 F0) 
 {
@@ -124,8 +155,11 @@ void main()
     vec3 kS = F;
     vec3 kD = (1.0 - kS) * (1.0 - metallic);
 
+    float shadow = DirectionalShadowCalculation(v_ShadowCoord);
+    float visibility = 1.0 - shadow;
+
     float NdotL = max(dot(N, L), 0.0);
-    vec3 Lo = (kD * albedo / PI + specular) * u_DirLight.radiance * NdotL;
+    vec3 Lo = (kD * albedo / PI + specular) * u_DirLight.radiance * NdotL * visibility;
 
     vec3 ambient = vec3(0.03) * albedo;
 
@@ -134,5 +168,5 @@ void main()
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0/ 2.2));
 
-    outcolor = vec4(color, 1.0);
+    outcolor = vec4(vec3(color), 1.0);
 }

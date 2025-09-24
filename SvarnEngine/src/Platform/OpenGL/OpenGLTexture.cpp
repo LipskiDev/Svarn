@@ -101,7 +101,7 @@ namespace Svarn {
     void OpenGLTexture::SetFiltering(TextureFiltering minFilter, TextureFiltering magFilter) const {
         glBindTexture(GL_TEXTURE_2D, m_RendererID);
         GLenum glMin = (minFilter == TextureFiltering::Linear) ? GL_LINEAR_MIPMAP_LINEAR  // trilinear if you have mips
-                                                               : GL_NEAREST_MIPMAP_NEAREST;
+                                                               : GL_NEAREST;
 
         GLenum glMag = (magFilter == TextureFiltering::Linear) ? GL_LINEAR : GL_NEAREST;
 
@@ -129,7 +129,6 @@ namespace Svarn {
         m_IsLoaded = true;
         m_Width = width;
         m_Height = height;
-        SV_CORE_TRACE("Loading texture from path: {0} with width {1} and height {2}", m_Path, m_Width, m_Height);
 
         GLenum internalFormat = 0;
         GLenum dataFormat = 0;
@@ -137,22 +136,18 @@ namespace Svarn {
             case 1:
                 internalFormat = GL_R8;
                 dataFormat = GL_RED;
-                SV_CORE_TRACE("Texture channel count is 1. Internal format is: {}. Data Format is: {}.", internalFormat, dataFormat);
                 break;
             case 2:
                 internalFormat = GL_RG8;
                 dataFormat = GL_RG;
-                SV_CORE_TRACE("Texture channel count is 2. Internal format is: {}. Data Format is: {}.", internalFormat, dataFormat);
                 break;
             case 3:
                 internalFormat = GL_RGBA8;
                 dataFormat = GL_RGBA;
-                SV_CORE_TRACE("Texture channel count is 3. Internal format is: {}. Data Format is: {}.", internalFormat, dataFormat);
                 break;
             case 4:
                 internalFormat = GL_RGBA8;
                 dataFormat = GL_RGBA;
-                SV_CORE_TRACE("Texture channel count is 4. Internal format is: {}. Data Format is: {}.", internalFormat, dataFormat);
                 break;
             default:
                 SV_CORE_ERROR("Texture channel count is not within (1-4) range. Channel count: {}", channels);
@@ -166,12 +161,8 @@ namespace Svarn {
         glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererID);
         glTextureStorage2D(m_RendererID, 1, internalFormat, static_cast<int>(m_Width), static_cast<int>(m_Height));
 
-        // Calculate memory usage based on channels and dimensions
-        size_t textureMemory = static_cast<size_t>(m_Width) * m_Height * channels;
         // Track GPU memory allocation
         std::string textureName = "OpenGL Texture2D: " + std::string(path);
-
-        SV_CORE_INFO("Loaded texture {0}, Texture Size {1}", textureName, textureMemory);
 
         // Register with GPU Resource Inspector
 
