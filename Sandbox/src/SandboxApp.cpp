@@ -2,9 +2,12 @@
 #include <Svarn.h>
 
 #include "Svarn/Application.h"
+#include "Svarn/Renderer/Framebuffer.h"
 #include "Svarn/Renderer/Primitives.h"
+#include "Svarn/Renderer/ShaderLibrary.h"
 #include "Svarn/Renderer/Texture.h"
 #include "Svarn/Layer.h"
+#include "Svarn/Scene/DirectionalLight.h"
 #include "imgui.h"
 #include <Svarn/Scene/PerspectiveCamera.h>
 #include <glm/glm.hpp>
@@ -14,8 +17,14 @@ using namespace Svarn;
 
 class ExampleLayer : public Layer {
     std::shared_ptr<PerspectiveCamera> m_Camera;
+    std::shared_ptr<DirectionalLight> m_Light;
 
     std::shared_ptr<Mesh> m_SphereMesh;
+
+    std::shared_ptr<Mesh> m_Ground;
+    std::shared_ptr<Texture> m_GroundTexture;
+    Material m_GroundMaterial = Material::New();
+    Transform m_GroundTransform = Transform(glm::vec3(0.0f, -10.f, 0.0f), glm::vec3(100.f), glm::vec3(glm::radians(-90.0f), 0.0f, 0.0f));
 
     std::shared_ptr<Model> m_Cerberus;
     std::shared_ptr<Texture> m_CerberusAlbedo;
@@ -23,104 +32,70 @@ class ExampleLayer : public Layer {
     std::shared_ptr<Texture> m_CerberusRoughness;
     std::shared_ptr<Texture> m_CerberusMetallic;
 
-    std::shared_ptr<Texture> m_EquirectEnvironmentTexture;
+    Material m_CerberusMaterial = Material::New();
 
-    std::shared_ptr<Shader> m_CerberusShader;
-    std::shared_ptr<Shader> m_EquirectToCubeShader;
+    Transform m_CerberusTransform = Transform(glm::vec3(-65.0, 30.0, 0.0), glm::vec3(1.0), glm::vec3(0.0f, glm::radians(90.0f), glm::radians(90.0f)));
+
+    std::shared_ptr<Shader> m_PBRShader;
+
+    Material m_sphereMaterial = Material::New();
 
     // PBR Variables
-    glm::vec3 m_SphereAlbedo;
-    float m_SphereRoughness;
-    float m_SphereMetallic;
-
-    glm::vec3 m_LightDirection = glm::vec3(0.0, 1.0, 0.0);
-    glm::vec3 m_LightRadiance = glm::vec3(1.0, 1.0, 1.0);
+    glm::vec3 m_SphereAlbedo = glm::vec3(1.0, 1.0, 1.0);
+    float m_SphereRoughness = 1.0;
+    float m_SphereMetallic = 1.0;
 
     RendererAPIInfo apiInfo;
 
-    GLuint envTextureUnfiltered, envTextureEquirect;
-
     bool m_RenderModel = false;
+    bool m_RenderTerrain = true;
 
     public:
     ExampleLayer() : Layer("Example") {
-        apiInfo = Renderer::GetAPIInfo();
+        apiInfo = GetRenderer().GetAPIInfo();
 
-        m_Camera.reset(new PerspectiveCamera(90, 16.0 / 9.0, 0.1f, 10000));
+        m_Camera.reset(new PerspectiveCamera(90, 16.0 / 9.0, 1.f, 10000));
+        m_Light.reset(new DirectionalLight(glm::vec3(0.0, -1.0, 0.0), glm::vec3(1.0, 1.0, 1.0)));
 
-        m_Cerberus.reset(Model::Create("Sandbox/assets/models/Cerberus_LP.FBX"));
         m_CerberusAlbedo.reset(Texture::Create("Sandbox/assets/textures/Cerberus_A.tga"));
         m_CerberusNormals.reset(Texture::Create("Sandbox/assets/textures/Cerberus_N.tga"));
         m_CerberusRoughness.reset(Texture::Create("Sandbox/assets/textures/Cerberus_R.tga"));
         m_CerberusMetallic.reset(Texture::Create("Sandbox/assets/textures/Cerberus_M.tga"));
 
-        m_CerberusShader.reset(Shader::Create());
-        m_CerberusShader->Attach(ShaderStage::Vertex, "Sandbox/shaders/pbr.vs");
-        m_CerberusShader->Attach(ShaderStage::Fragment, "Sandbox/shaders/pbr.fs");
-        m_CerberusShader->Link();
+        m_CerberusMaterial =
+            Material::FromTextures("Cerberus Material", m_CerberusAlbedo, m_CerberusNormals, m_CerberusRoughness, m_CerberusMetallic);
 
-        m_SphereMesh.reset(Primitives::Sphere(10, 32, 32));
+        m_Cerberus.reset(Model::Create("Sandbox/assets/models/Cerberus_LP.FBX"));
 
-        // glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &envTextureUnfiltered);
-        // glTextureStorage2D(envTextureUnfiltered, 1, GL_RGBA16F, 1024, 1024);
-        // glTextureParameteri(envTextureUnfiltered, GL_TEXTURE_MIN_FILTER, 1 > 1 ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
-        // glTextureParameteri(envTextureUnfiltered, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        // glTextureParameterf(envTextureUnfiltered, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1);
-        //
-        // m_EquirectToCubeShader.reset(Shader::Create());
-        // m_EquirectToCubeShader->Attach(ShaderStage::Compute, "Sandbox/shaders/equirectToCube.cs");
-        // m_EquirectToCubeShader->Link();
-        //
-        // m_EquirectEnvironmentTexture.reset(Texture::Create("Sandbox/assets/textures/meadow.hdr"));
-        //
-        // m_EquirectToCubeShader->Bind();
-        // m_EquirectToCubeShader->BindTexture("inputTexture", m_EquirectEnvironmentTexture);
-        //
-        // glBindImageTexture(0, envTextureUnfiltered, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA16F);
-        // m_EquirectToCubeShader->Dispatch(1024 / 32, 1024 / 32, 6);
+        m_Cerberus->SetMaterial(m_CerberusMaterial);
+
+        m_PBRShader = GetShaderLibrary().Get("PBR");
+
+        m_SphereMesh = Primitives::Sphere(10, 64, 64);
+        m_SphereMesh->SetMaterial(m_sphereMaterial);
+        m_Ground = Primitives::Grid(128, 128, 1);
+
+        m_GroundTexture.reset(Texture::Create("Sandbox/assets/textures/PNG/Green/texture_01.png"));
+        m_GroundTexture->SetFiltering(TextureFiltering::Nearest, TextureFiltering::Nearest);
+        m_GroundMaterial.SetMetallicValue(0.0);
+        m_GroundMaterial.SetRoughnessValue(1.0);
+        m_GroundMaterial.SetAlbedoTexture(m_GroundTexture);
+        m_Ground->SetMaterial(m_GroundMaterial);
     }
 
     void OnUpdate(Timestep ts) override {
         m_Camera->OnUpdate(ts);
 
+        GetRenderer().Submit(m_Light);
         if (Input::IsKeyPressed(SV_KEY_R)) {
-            m_CerberusShader->ReloadShader();
+            m_PBRShader->ReloadShader();
         }
 
-        RenderCommand::SetClearColor({0.1f, 0.1f, 0.1f, 1});
-        RenderCommand::Clear();
+        GetRenderer().BeginScene(m_Camera);
 
-        Renderer::BeginScene(m_Camera);
+        GetRenderer().RenderTerrain(m_RenderTerrain);
 
-        m_CerberusShader->Bind();
-        m_CerberusShader->SetVec3("u_DirLight.direction", m_LightDirection);
-        m_CerberusShader->SetVec3("u_DirLight.radiance", m_LightRadiance);
-
-        if (m_RenderModel) {
-            m_CerberusShader->BindTexture("material.albedoTexture", m_CerberusAlbedo);
-            m_CerberusShader->BindTexture("material.normalTexture", m_CerberusNormals);
-            m_CerberusShader->BindTexture("material.roughnessTexture", m_CerberusRoughness);
-            m_CerberusShader->BindTexture("material.metallicTexture", m_CerberusMetallic);
-            m_CerberusShader->SetBool("material.useAlbedoTexture", true);
-            m_CerberusShader->SetBool("material.useNormalTexture", true);
-            m_CerberusShader->SetBool("material.useRoughnessTexture", true);
-            m_CerberusShader->SetBool("material.useMetallicTexture", true);
-
-            Renderer::Submit(m_Cerberus, m_CerberusShader);
-        } else {
-            m_CerberusShader->SetVec3("material.albedo", m_SphereAlbedo);
-            m_CerberusShader->SetFloat("material.roughness", m_SphereRoughness);
-            m_CerberusShader->SetFloat("material.metallic", m_SphereMetallic);
-
-            m_CerberusShader->SetBool("material.useAlbedoTexture", false);
-            m_CerberusShader->SetBool("material.useNormalTexture", false);
-            m_CerberusShader->SetBool("material.useRoughnessTexture", false);
-            m_CerberusShader->SetBool("material.useMetallicTexture", false);
-
-            Renderer::Submit(m_SphereMesh, m_CerberusShader);
-        }
-
-        Renderer::EndScene();
+        GetRenderer().EndScene();
     }
 
     virtual void OnImGuiRender(Timestep ts) override {
@@ -136,23 +111,13 @@ class ExampleLayer : public Layer {
             ImGui::Separator();
             ImGui::Spacing();
 
-            if (ImGui::Button(m_RenderModel ? "Render Model ON" : "Render Model OFF")) {
-                m_RenderModel = !m_RenderModel;
+            if (ImGui::Button(m_RenderTerrain ? "Render Terrain ON" : "Render Terrain OFF")) {
+                m_RenderTerrain = !m_RenderTerrain;
             }
 
             ImGui::Spacing();
-
-            ImGui::SliderFloat3("Light Direction", &m_LightDirection.x, -1.0f, 1.0f);
-            ImGui::ColorEdit3("Light Color", &m_LightRadiance.x);
-
-            if (!m_RenderModel) {
-                ImGui::Spacing();
-                ImGui::Separator();
-                ImGui::Spacing();
-                ImGui::ColorEdit3("Sphere Color", &m_SphereAlbedo.x);
-                ImGui::SliderFloat("Sphere Roughness", &m_SphereRoughness, 0.0f, 1.0f);
-                ImGui::SliderFloat("Sphere Metallic", &m_SphereMetallic, 0.0f, 1.0f);
-            }
+            ImGui::Separator();
+            ImGui::Spacing();
         }
         ImGui::End();
     }

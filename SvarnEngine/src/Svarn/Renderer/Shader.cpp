@@ -9,7 +9,7 @@
 namespace Svarn {
 
     Shader* Shader::Create() {
-        switch (Renderer::GetAPI()) {
+        switch (GetRenderer().GetAPI()) {
             case RendererAPI::API::None:
                 SV_CORE_ASSERT(false, "RendererAPI::None currently not supported.");
             case RendererAPI::API::OpenGL:

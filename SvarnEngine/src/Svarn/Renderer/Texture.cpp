@@ -9,7 +9,7 @@ namespace Svarn {
     }
 
     Texture* Texture::Create(std::string texturePath) {
-        switch (Renderer::GetAPI()) {
+        switch (GetRenderer().GetAPI()) {
             case RendererAPI::API::None:
                 SV_CORE_ASSERT(false, "RendererAPI::None currently not supported.");
             case RendererAPI::API::OpenGL:
@@ -23,7 +23,7 @@ namespace Svarn {
     }
 
     Texture* Texture::Create(TextureSpecification spec) {
-        switch (Renderer::GetAPI()) {
+        switch (GetRenderer().GetAPI()) {
             case RendererAPI::API::None:
                 SV_CORE_ASSERT(false, "RendererAPI::None currently not supported.");
             case RendererAPI::API::OpenGL:

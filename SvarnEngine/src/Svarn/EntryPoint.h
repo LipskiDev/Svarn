@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdio.h>
+#include "Svarn/Application.h"
 
 #ifdef SV_PLATFORM_WINDOWS
 extern Svarn::Application* Svarn::CreateApplication();

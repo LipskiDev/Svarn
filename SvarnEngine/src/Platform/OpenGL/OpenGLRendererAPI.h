@@ -12,6 +12,9 @@ namespace Svarn {
 
         virtual void DrawIndexed(const std::shared_ptr<VertexArray>& vertexArray) override;
 
+        virtual void EnableDepthTest() override;
+        virtual void DisableDepthTest() override;
+
         virtual RendererAPIInfo GetRendererAPIInfo() override;
     };
 }  // namespace Svarn

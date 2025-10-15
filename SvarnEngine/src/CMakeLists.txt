@@ -19,12 +19,16 @@
     "Svarn/ImGui/ImGuiLayer.h"
 
     "Svarn/Scene/Camera.h"
+    "Svarn/Scene/DirectionalLight.cpp"
+    "Svarn/Scene/DirectionalLight.h"
     "Svarn/Scene/PerspectiveCamera.cpp"
     "Svarn/Scene/PerspectiveCamera.h"
 
     "Svarn/Log.cpp"
     "Svarn/Log.h"
     "Svarn/Window.h"
+
+    "Svarn/Math/Transform.h"
 
     "Svarn/KeyCodes.h"
 
@@ -34,12 +38,16 @@
     "Svarn/Events/MouseEvent.h"
 
 
-    "Svarn/Renderer/Buffer.h"
     "Svarn/Renderer/Buffer.cpp"
-    "Svarn/Renderer/Mesh.h"
+    "Svarn/Renderer/Buffer.h"
+    "Svarn/Renderer/Framebuffer.cpp"
+    "Svarn/Renderer/Framebuffer.h"
+    "Svarn/Renderer/Material.cpp"
+    "Svarn/Renderer/Material.h"
     "Svarn/Renderer/Mesh.cpp"
-    "Svarn/Renderer/Model.h"
+    "Svarn/Renderer/Mesh.h"
     "Svarn/Renderer/Model.cpp"
+    "Svarn/Renderer/Model.h"
     "Svarn/Renderer/Primitives.cpp"
     "Svarn/Renderer/Primitives.h"
     "Svarn/Renderer/RenderCommand.cpp"
@@ -51,13 +59,17 @@
     "Svarn/Renderer/RenderingContext.h"
     "Svarn/Renderer/Shader.cpp"
     "Svarn/Renderer/Shader.h"
+    "Svarn/Renderer/ShaderLibrary.cpp"
+    "Svarn/Renderer/ShaderLibrary.h"
     "Svarn/Renderer/Texture.cpp"
     "Svarn/Renderer/Texture.h"
-    "Svarn/Renderer/VertexArray.h"
     "Svarn/Renderer/VertexArray.cpp"
+    "Svarn/Renderer/VertexArray.h"
 
     "Platform/OpenGL/OpenGLBuffer.cpp"
     "Platform/OpenGL/OpenGLBuffer.h"
+    "Platform/OpenGL/OpenGLFramebuffer.cpp"
+    "Platform/OpenGL/OpenGLFramebuffer.h"
     "Platform/OpenGL/OpenGLRendererAPI.cpp"
     "Platform/OpenGL/OpenGLRendererAPI.h"
     "Platform/OpenGL/OpenGLRenderingContext.cpp"  

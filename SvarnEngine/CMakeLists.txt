@@ -41,7 +41,7 @@ target_compile_definitions(SvarnEngine PRIVATE
 
 
 
-target_compile_definitions(SvarnEngine PRIVATE SV_BUILD_DLL)
+target_compile_definitions(SvarnEngine PRIVATE SV_BUILD_DLL SV_ENABLE_ASSERTS)
 
 
 target_include_directories(SvarnEngine PRIVATE

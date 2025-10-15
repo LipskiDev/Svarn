@@ -5,14 +5,16 @@
 namespace Svarn {
     class Material {
         public:
-        static Material* FromTextures(std::shared_ptr<Texture> albedoTexture, std::shared_ptr<Texture> normalTexture,
-                                      std::shared_ptr<Texture> roughnessTexture, std::shared_ptr<Texture> metallicTexture);
+        std::string m_MaterialName;
 
-        static Material* FromValues(glm::vec3 color, float roughness, float metallic);
+        static Material FromTextures(std::string materialName, std::shared_ptr<Texture> albedoTexture, std::shared_ptr<Texture> normalTexture,
+                                     std::shared_ptr<Texture> roughnessTexture, std::shared_ptr<Texture> metallicTexture);
 
-        static Material* New();
+        static Material FromValues(std::string materialName, glm::vec3 color, float roughness, float metallic);
 
-        void BindToShader(std::shared_ptr<Shader> shader);
+        static Material New();
+
+        void BindToShader(std::shared_ptr<Shader> shader) const;
 
         void SetAlbedoValue(glm::vec3 color);
         void SetRoughnessValue(float roughness);
@@ -24,16 +26,15 @@ namespace Svarn {
         void SetMetallicTexture(std::shared_ptr<Texture> metallicTexture);
 
         private:
-        Material(std::shared_ptr<Texture> albedoTexture, std::shared_ptr<Texture> normalTexture, std::shared_ptr<Texture> roughnessTexture,
-                 std::shared_ptr<Texture> metallicTexture);
+        Material(std::string materialName, std::shared_ptr<Texture> albedoTexture, std::shared_ptr<Texture> normalTexture,
+                 std::shared_ptr<Texture> roughnessTexture, std::shared_ptr<Texture> metallicTexture);
 
-        Material(glm::vec3 color, float roughness, float metallic);
+        Material(std::string materialName, glm::vec3 color, float roughness, float metallic);
 
-        Material();
-        bool m_UseAlbedoTexture;
-        bool m_UseNormalTexture;
-        bool m_UseRoughnessTexture;
-        bool m_UseMetallicTexture;
+        bool m_UseAlbedoTexture = false;
+        bool m_UseNormalTexture = false;
+        bool m_UseRoughnessTexture = false;
+        bool m_UseMetallicTexture = false;
 
         // Textures
         std::shared_ptr<Texture> m_AlbedoTexture;
@@ -45,8 +46,8 @@ namespace Svarn {
         std::shared_ptr<Texture> m_MetallicTexture;
 
         // Non-Texture Values
-        glm::vec3 m_AlbedoValue;
-        float m_RoughnessValue;
-        float m_MetallicValue;
+        glm::vec3 m_AlbedoValue = glm::vec3(1.0, 0.0, 0.0);
+        float m_RoughnessValue = 1.0f;
+        float m_MetallicValue = 1.0f;
     };
 }  // namespace Svarn

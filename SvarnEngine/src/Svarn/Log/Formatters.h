@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include "Svarn/Renderer/Material.h"
 #include "spdlog/fmt/bundled/base.h"
 #include <fmt/format.h>
 #include <spdlog/fmt/bundled/format.h>

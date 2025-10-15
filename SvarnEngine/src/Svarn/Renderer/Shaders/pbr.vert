@@ -1,3 +1,4 @@
+
 #version 330 core
 
 layout(location = 0) in vec3 a_Position;
@@ -6,16 +7,17 @@ layout(location = 2) in vec2 a_TexCoord;
 layout(location = 3) in vec4 a_Tangent;
 layout(location = 4) in vec4 a_Bitangent;
 
-uniform mat4 modelMatrix;
-uniform mat4 viewMatrix;
-uniform mat4 projectionMatrix;
-uniform mat4 VP;
+uniform mat4 u_ModelMatrix;
+uniform mat4 u_ViewMatrix;
+uniform mat4 u_ProjectionMatrix;
+uniform mat4 u_DirectionalLightTransformMatrix;
 
 out vec3 v_Position;
 out vec3 v_Normal;
 out vec2 v_TexCoord;
 out vec4 v_Tangent;
 out mat3 v_TangentBasis;
+out vec4 v_ShadowCoord;
 
 mat3 computeNormalMatrix(mat4 M) {
     return transpose(inverse(mat3(M)));
@@ -24,13 +26,13 @@ mat3 computeNormalMatrix(mat4 M) {
 void main()
 {
     // world-space position
-    vec4 worldPos = modelMatrix * vec4(a_Position, 1.0);
+    vec4 worldPos = u_ModelMatrix * vec4(a_Position, 1.0);
     v_Position = worldPos.xyz;
 
-    mat3 Nmat = computeNormalMatrix(modelMatrix);
+    mat3 Nmat = computeNormalMatrix(u_ModelMatrix);
     vec3 N = normalize(Nmat * a_Normal);
 
-    vec3 Traw = mat3(modelMatrix) * a_Tangent.xyz;
+    vec3 Traw = mat3(u_ModelMatrix) * a_Tangent.xyz;
 
     vec3 T = normalize(Traw - N * dot(Traw, N));
 
@@ -41,6 +43,8 @@ void main()
     v_Tangent = vec4(T, handedness);
     v_TexCoord = a_TexCoord;
     v_TangentBasis = mat3(T, B, N);
+    v_ShadowCoord = u_DirectionalLightTransformMatrix * u_ModelMatrix * vec4(a_Position, 1.0);
 
-    gl_Position = VP * worldPos;
+
+    gl_Position = u_ProjectionMatrix * u_ViewMatrix * worldPos;
 }

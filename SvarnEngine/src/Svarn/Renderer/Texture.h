@@ -13,13 +13,14 @@ namespace Svarn {
     struct TextureSpecification {
         uint32_t width, height;
         TextureFormat format = TextureFormat::RGBA8;
-        TextureFiltering filtering = TextureFiltering::Linear;
+        TextureFiltering filtering = TextureFiltering::Nearest;
         TextureWrapping wrapping = TextureWrapping::Repeat;
         bool generateMips = false;
     };
 
     class Texture {
         friend class OpenGLShader;
+        friend class OpenGLFramebuffer;
 
         public:
         virtual void SetFiltering(TextureFiltering minFilter, TextureFiltering magFilter) const = 0;

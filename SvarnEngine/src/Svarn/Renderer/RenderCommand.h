@@ -12,6 +12,9 @@ namespace Svarn {
 
         inline static void DrawIndexed(const std::shared_ptr<VertexArray>& vertexArray) { s_RendererAPI->DrawIndexed(vertexArray); }
 
+        inline static void EnableDepthTest() { s_RendererAPI->EnableDepthTest(); }
+        inline static void DisableDepthTest() { s_RendererAPI->DisableDepthTest(); }
+
         inline static RendererAPIInfo GetAPIInfo() { return s_RendererAPI->GetRendererAPIInfo(); }
 
         private:

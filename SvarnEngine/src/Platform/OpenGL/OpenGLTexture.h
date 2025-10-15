@@ -5,6 +5,8 @@
 namespace Svarn {
     class OpenGLTexture : public Texture {
         public:
+        friend class OpenGLFramebuffer;
+
         OpenGLTexture(std::string texturePath);
         OpenGLTexture(TextureSpecification spec);
         virtual void SetFiltering(TextureFiltering minFilter, TextureFiltering magFilter) const override;

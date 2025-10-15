@@ -15,14 +15,12 @@
     {                                                       \
         if (!(x)) {                                         \
             SV_ERROR("Assertion Failed: {0}", __VA_ARGS__); \
-            __debugbreak();                                 \
         }                                                   \
     }
 #define SV_CORE_ASSERT(x, ...)                                   \
     {                                                            \
         if (!(x)) {                                              \
             SV_CORE_ERROR("Assertion Failed: {0}", __VA_ARGS__); \
-            __debugbreak();                                      \
         }                                                        \
     }
 #else

@@ -2,9 +2,11 @@
 
 #include <Svarn/Renderer/Primitives.h>
 #include "Svarn/Core.h"
+#include "Svarn/Renderer/Buffer.h"
+#include "Svarn/Renderer/VertexArray.h"
 
 namespace Svarn {
-    Mesh* Primitives::Sphere(int radius, int slices, int stacks) {
+    std::shared_ptr<Mesh> Primitives::Sphere(int radius, int slices, int stacks) {
         if (radius <= 0.0f || slices < 3 || stacks < 2) {
             SV_ASSERT(false, "Cannot create a sphere Mesh.");
         }
@@ -92,7 +94,78 @@ namespace Svarn {
                 indices.push_back(i3);
             }
         }
-
-        return Mesh::Create(verts, indices);
+        std::shared_ptr<Mesh> mesh;
+        mesh.reset(Mesh::Create(verts, indices));
+        return mesh;
     }
+
+    std::shared_ptr<Mesh> Primitives::Quad() {
+        std::vector<Vertex> verts;
+        std::vector<uint32_t> indices;
+
+        verts.reserve(4);
+        indices.reserve(6);
+
+        // Shared attributes
+        const glm::vec3 N = glm::vec3(0.f, 0.f, 1.f);       // facing +Z
+        const glm::vec4 T = glm::vec4(1.f, 0.f, 0.f, 1.f);  // tangent +X
+        const glm::vec4 B = glm::vec4(0.f, 1.f, 0.f, 1.f);  // bitangent +Y
+
+        // Interleaved vertex attributes: [x, y, z] + [u, v]
+        // NDC positions cover the whole screen; UVs in [0,1]
+        verts.push_back(Vertex{
+            glm::vec3(-1.f, -1.f, 0.f), N, glm::vec2(0.f, 0.f), T, B  // bottom-left
+        });
+        verts.push_back(Vertex{
+            glm::vec3(1.f, -1.f, 0.f), N, glm::vec2(1.f, 0.f), T, B  // bottom-right
+        });
+        verts.push_back(Vertex{
+            glm::vec3(1.f, 1.f, 0.f), N, glm::vec2(1.f, 1.f), T, B  // top-right
+        });
+        verts.push_back(Vertex{
+            glm::vec3(-1.f, 1.f, 0.f), N, glm::vec2(0.f, 1.f), T, B  // top-left
+        });
+
+        // Two CCW triangles (as seen from +Z)
+        indices = {0, 1, 2, 0, 2, 3};
+
+        std::shared_ptr<Mesh> mesh;
+        mesh.reset(Mesh::Create(verts, indices));
+        return mesh;
+    }
+
+    std::shared_ptr<Mesh> Primitives::Grid(int width, int height, int size) {
+        std::vector<Vertex> verts;
+        std::vector<uint32_t> indices;
+
+        for (int i = 0; i < width + 1; i++) {
+            for (int j = 0; j < height + 1; j++) {
+                Vertex v;
+                v.position = glm::vec3(i * size, 0.0, j * size);
+                v.normal = glm::vec3(0.0, 1.0, 0.0);
+                v.uv = glm::vec2((float)i / (float)width, (float)j / (float)height);
+                v.tangent = glm::vec4(0.0f, 1.0f, 0.0f, 0.0);
+                v.bitangent = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
+
+                verts.push_back(v);
+            }
+        }
+
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                indices.push_back(j + i * (height + 1));
+                indices.push_back(j + 1 + i * (height + 1));
+                indices.push_back(j + (i + 1) * (height + 1));
+
+                indices.push_back(j + 1 + i * (height + 1));
+                indices.push_back(j + (i + 1) * (height + 1));
+                indices.push_back(j + 1 + (i + 1) * (height + 1));
+            }
+        }
+
+        std::shared_ptr<Mesh> mesh;
+        mesh.reset(Mesh::Create(verts, indices));
+        return mesh;
+    }
+
 }  // namespace Svarn

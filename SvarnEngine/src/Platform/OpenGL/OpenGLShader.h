@@ -30,6 +30,8 @@ namespace Svarn {
 
         virtual void Attach(ShaderStage stage, const std::string& path) override;
         virtual void Link() const override;
+        virtual int GetShaderID() const override;
+
         virtual bool IsComputeShader() const override;
 
         // Graphics Functions
@@ -57,8 +59,6 @@ namespace Svarn {
 
         private:
         GLint m_ShaderID;
-
-        std::string m_VertexPath, m_FragmentPath;
     };
 
 }  // namespace Svarn

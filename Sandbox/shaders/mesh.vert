@@ -1,3 +1,4 @@
+
 #version 330 core
 
 layout(location = 0) in vec3 a_Position;
@@ -42,5 +43,5 @@ void main()
     v_TexCoord = a_TexCoord;
     v_TangentBasis = mat3(T, B, N);
 
-    gl_Position = VP * worldPos;
+    gl_Position = projectionMatrix * viewMatrix * worldPos;
 }

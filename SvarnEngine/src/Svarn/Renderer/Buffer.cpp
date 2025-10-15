@@ -6,7 +6,7 @@
 namespace Svarn {
 
     VertexBuffer* VertexBuffer::Create(const float* vertices, uint32_t size) {
-        switch (Renderer::GetAPI()) {
+        switch (GetRenderer().GetAPI()) {
             case RendererAPI::API::None:
                 SV_CORE_ASSERT(false, "RendererAPI::None currently not supported.");
             case RendererAPI::API::OpenGL:
@@ -20,7 +20,7 @@ namespace Svarn {
     }
 
     IndexBuffer* IndexBuffer::Create(const uint32_t* vertices, uint32_t count) {
-        switch (Renderer::GetAPI()) {
+        switch (GetRenderer().GetAPI()) {
             case RendererAPI::API::None:
                 SV_CORE_ASSERT(false, "RendererAPI::None currently not supported.");
             case RendererAPI::API::OpenGL:

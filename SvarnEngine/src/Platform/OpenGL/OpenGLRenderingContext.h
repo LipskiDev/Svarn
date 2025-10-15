@@ -9,6 +9,7 @@ namespace Svarn {
     class OpenGLRenderingContext : public RenderingContext {
         public:
         OpenGLRenderingContext(GLFWwindow* windowHandle);
+        ~OpenGLRenderingContext();
 
         virtual void Init() override;
         virtual void SwapBuffers() override;

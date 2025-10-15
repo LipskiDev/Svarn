@@ -56,6 +56,8 @@ namespace Svarn {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);  // or 4,5
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        glfwWindowHint(GLFW_DEPTH_BITS, 24);
+        glfwWindowHint(GLFW_STENCIL_BITS, 8);
         m_Window = glfwCreateWindow((int)props.Width, (int)props.Height, m_Data.Title.c_str(), nullptr, nullptr);
         glfwSetWindowAttrib(m_Window, GLFW_RESIZABLE, GL_FALSE);
         m_Context = new OpenGLRenderingContext(m_Window);

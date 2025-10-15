@@ -5,6 +5,7 @@
 #include <assimp/Importer.hpp>
 #include <memory>
 #include "Svarn/Log.h"
+#include "glm/gtc/type_ptr.hpp"
 #include <assimp/postprocess.h>
 
 namespace Svarn {
@@ -75,6 +76,8 @@ namespace Svarn {
         }
         std::shared_ptr<Mesh> processedMesh;
         processedMesh.reset(Mesh::Create(vertices, indices));
+        processedMesh->SetMaterial(m_Material);
+        SV_CORE_INFO("Setting Mesh material to: {0}", processedMesh->GetMaterial().m_MaterialName);
         return processedMesh;
     }
 }  // namespace Svarn
