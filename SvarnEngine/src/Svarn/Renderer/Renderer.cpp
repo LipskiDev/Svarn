@@ -6,6 +6,7 @@
 #include "Svarn/Renderer/Framebuffer.h"
 #include "Svarn/Renderer/VertexArray.h"
 #include <Svarn/Renderer/ShaderLibrary.h>
+#include <Svarn/Renderer/Primitives.h>
 
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_transform.hpp>
@@ -27,6 +28,11 @@ namespace Svarn {
         m_PBRShader = GetShaderLibrary().Get("PBR");
         if (!m_PBRShader) SV_CORE_INFO("PBR Shader not found");
 
+        m_TerrainShader = GetShaderLibrary().Get("Terrain");
+        if (!m_TerrainShader) SV_CORE_INFO("Terrain Shader not found");
+
+        m_PatchMesh = Primitives::Grid(512, 512, 1);
+
         SV_CORE_TRACE("Successfully initialized Renderer");
     }
 
@@ -39,6 +45,8 @@ namespace Svarn {
 
     void Renderer::EndScene() {
         Clear();
+
+        // Depth Pass from Global directional Light source
         m_DepthShader->Bind();
         m_DepthMapLight->Bind();
 
@@ -54,12 +62,11 @@ namespace Svarn {
         m_DepthMapLight->Unbind();
         m_DepthShader->Unbind();
 
+        // Physically based Rendering pass using shadow mapping from direction light
+
         m_PBRShader->Bind();
         m_PBRShader->BindTexture("shadowMap", m_DepthMapLight->GetDepthAttachment());
 
-        m_PBRShader->SetMat4("u_ProjectionMatrix", m_ProjectionMatrix);
-        m_PBRShader->SetMat4("u_ViewMatrix", m_ViewMatrix);
-        m_PBRShader->SetVec3("u_CameraPosition", m_Camera->GetPosition());
         if (m_DirectionalLight) {
             m_PBRShader->SetVec3("u_DirLight.direction", m_DirectionalLight->m_LightDirection);
             m_PBRShader->SetVec3("u_DirLight.radiance", m_DirectionalLight->m_LightRadiance);
@@ -67,6 +74,9 @@ namespace Svarn {
         m_PBRShader->SetMat4("u_DirectionalLightTransformMatrix", m_DirectionalLight->CalculateLightTTransform());
         for (const RenderObject& obj : renderQueue) {
             obj.vertexArray->Bind();
+            m_PBRShader->SetMat4("u_ProjectionMatrix", m_ProjectionMatrix);
+            m_PBRShader->SetMat4("u_ViewMatrix", m_ViewMatrix);
+            m_PBRShader->SetVec3("u_CameraPosition", m_Camera->GetPosition());
 
             m_PBRShader->SetMat4("u_ModelMatrix", obj.transform.GetModelMatrix());
 
@@ -76,6 +86,15 @@ namespace Svarn {
         m_PBRShader->Unbind();
 
         m_DepthMapLight->Unbind();
+
+        // Terrain Rendering
+        if (m_ShouldRenderTerrain) {
+            m_TerrainShader->Bind();
+            m_TerrainShader->SetMat4("u_ProjectionMatrix", m_ProjectionMatrix);
+            m_TerrainShader->SetMat4("u_ViewMatrix", m_ViewMatrix);
+            m_TerrainShader->SetMat4("u_ModelMatrix", glm::mat4(1.0));
+            RenderCommand::DrawIndexed(m_PatchMesh->GetVertexArray());
+        }
 
         m_DepthMapLight->Clear();
         renderQueue.clear();
@@ -103,6 +122,8 @@ namespace Svarn {
     }
 
     void Renderer::Submit(const std::shared_ptr<DirectionalLight>& directionalLight) { m_DirectionalLight = directionalLight; };
+
+    void Renderer::RenderTerrain(bool shouldRenderTerrain) { m_ShouldRenderTerrain = shouldRenderTerrain; }
 
     // TODO: implement shader library so that i can just call 'DrawToScreen(texture);' and the correct shader + quad is chosen and generated
     void Renderer::DrawToScreen(std::shared_ptr<Mesh>& mesh, std::shared_ptr<Shader>& shader) {

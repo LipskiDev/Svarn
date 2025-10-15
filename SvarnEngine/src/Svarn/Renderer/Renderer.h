@@ -34,6 +34,8 @@ namespace Svarn {
         void Submit(const std::shared_ptr<DirectionalLight>& directionalLight);
         void DrawToScreen(std::shared_ptr<Mesh>& mesh, std::shared_ptr<Shader>& shader);
 
+        void RenderTerrain(bool shouldRenderTerrain);
+
         void Clear();
 
         inline RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
@@ -46,6 +48,13 @@ namespace Svarn {
 
         std::shared_ptr<Shader> m_DepthShader;
         std::shared_ptr<Shader> m_PBRShader;
+        std::shared_ptr<Shader> m_TerrainShader;
+
+        // Terrain Renderer Variables
+        bool m_ShouldRenderTerrain = false;
+
+        std::shared_ptr<Mesh> m_PatchMesh;
+        Material m_TerrainMaterial = Material::FromValues("Terrain Material", glm::vec3(1.0), 1.0, 0.0);
 
         // General Camera
         glm::mat4 m_ViewMatrix;

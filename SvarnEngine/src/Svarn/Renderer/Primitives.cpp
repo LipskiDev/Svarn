@@ -133,4 +133,39 @@ namespace Svarn {
         mesh.reset(Mesh::Create(verts, indices));
         return mesh;
     }
+
+    std::shared_ptr<Mesh> Primitives::Grid(int width, int height, int size) {
+        std::vector<Vertex> verts;
+        std::vector<uint32_t> indices;
+
+        for (int i = 0; i < width + 1; i++) {
+            for (int j = 0; j < height + 1; j++) {
+                Vertex v;
+                v.position = glm::vec3(i * size, 0.0, j * size);
+                v.normal = glm::vec3(0.0, 1.0, 0.0);
+                v.uv = glm::vec2((float)i / (float)width, (float)j / (float)height);
+                v.tangent = glm::vec4(0.0f, 1.0f, 0.0f, 0.0);
+                v.bitangent = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
+
+                verts.push_back(v);
+            }
+        }
+
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                indices.push_back(j + i * (height + 1));
+                indices.push_back(j + 1 + i * (height + 1));
+                indices.push_back(j + (i + 1) * (height + 1));
+
+                indices.push_back(j + 1 + i * (height + 1));
+                indices.push_back(j + (i + 1) * (height + 1));
+                indices.push_back(j + 1 + (i + 1) * (height + 1));
+            }
+        }
+
+        std::shared_ptr<Mesh> mesh;
+        mesh.reset(Mesh::Create(verts, indices));
+        return mesh;
+    }
+
 }  // namespace Svarn

@@ -10,8 +10,8 @@ namespace Svarn {
     void ShaderLibrary::Init() {
         std::shared_ptr<Shader> pbrShader;
         pbrShader.reset(Shader::Create());
-        pbrShader->Attach(ShaderStage::Vertex, "Sandbox/shaders/pbr.vs");
-        pbrShader->Attach(ShaderStage::Fragment, "Sandbox/shaders/pbr.fs");
+        pbrShader->Attach(ShaderStage::Vertex, "SvarnEngine/src/Svarn/Renderer/Shaders/pbr.vs");
+        pbrShader->Attach(ShaderStage::Fragment, "SvarnEngine/src/Svarn/Renderer/Shaders/pbr.fs");
         pbrShader->Link();
         Add("PBR", pbrShader);
 
@@ -21,6 +21,13 @@ namespace Svarn {
         depthPassShader->Attach(ShaderStage::Fragment, "SvarnEngine/src/Svarn/Renderer/Shaders/directional_shadow_map.fs");
         depthPassShader->Link();
         Add("DepthPass", depthPassShader);
+
+        std::shared_ptr<Shader> terrainShader;
+        terrainShader.reset(Shader::Create());
+        terrainShader->Attach(ShaderStage::Vertex, "SvarnEngine/src/Svarn/Renderer/Shaders/terrain.vs");
+        terrainShader->Attach(ShaderStage::Fragment, "SvarnEngine/src/Svarn/Renderer/Shaders/terrain.fs");
+        terrainShader->Link();
+        Add("Terrain", terrainShader);
 
         SV_CORE_INFO("Successfully initialized ShaderLibrary");
     }

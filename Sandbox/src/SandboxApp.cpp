@@ -48,6 +48,7 @@ class ExampleLayer : public Layer {
     RendererAPIInfo apiInfo;
 
     bool m_RenderModel = false;
+    bool m_RenderTerrain = true;
 
     public:
     ExampleLayer() : Layer("Example") {
@@ -72,7 +73,7 @@ class ExampleLayer : public Layer {
 
         m_SphereMesh = Primitives::Sphere(10, 64, 64);
         m_SphereMesh->SetMaterial(m_sphereMaterial);
-        m_Ground = Primitives::Quad();
+        m_Ground = Primitives::Grid(128, 128, 1);
 
         m_GroundTexture.reset(Texture::Create("Sandbox/assets/textures/PNG/Green/texture_01.png"));
         m_GroundTexture->SetFiltering(TextureFiltering::Nearest, TextureFiltering::Nearest);
@@ -92,13 +93,7 @@ class ExampleLayer : public Layer {
 
         GetRenderer().BeginScene(m_Camera);
 
-        if (m_RenderModel) {
-            GetRenderer().Submit(m_Cerberus, m_CerberusTransform);
-        } else {
-            GetRenderer().Submit(m_SphereMesh);
-        }
-
-        GetRenderer().Submit(m_Ground, m_GroundTransform);
+        GetRenderer().RenderTerrain(m_RenderTerrain);
 
         GetRenderer().EndScene();
     }
@@ -116,33 +111,8 @@ class ExampleLayer : public Layer {
             ImGui::Separator();
             ImGui::Spacing();
 
-            if (ImGui::Button(m_RenderModel ? "Render Model ON" : "Render Model OFF")) {
-                m_RenderModel = !m_RenderModel;
-            }
-
-            ImGui::Spacing();
-
-            ImGui::SliderFloat3("Light Direction", &m_Light->m_LightDirection.x, -1.0f, 1.0f);
-            ImGui::ColorEdit3("Light Color", &m_Light->m_LightRadiance.x);
-
-            if (!m_RenderModel) {
-                ImGui::Spacing();
-                ImGui::Separator();
-                ImGui::Spacing();
-                if (ImGui::ColorEdit3("Sphere Color", &m_SphereAlbedo.x)) {
-                    m_sphereMaterial.SetAlbedoValue(m_SphereAlbedo);
-                    m_SphereMesh->SetMaterial(m_sphereMaterial);
-                };
-
-                if (ImGui::SliderFloat("Sphere Roughness", &m_SphereRoughness, 0.0f, 1.0f)) {
-                    m_sphereMaterial.SetRoughnessValue(m_SphereRoughness);
-                    m_SphereMesh->SetMaterial(m_sphereMaterial);
-                }
-
-                if (ImGui::SliderFloat("Sphere Metallic", &m_SphereMetallic, 0.0f, 1.0f)) {
-                    m_sphereMaterial.SetMetallicValue(m_SphereMetallic);
-                    m_SphereMesh->SetMaterial(m_sphereMaterial);
-                }
+            if (ImGui::Button(m_RenderTerrain ? "Render Terrain ON" : "Render Terrain OFF")) {
+                m_RenderTerrain = !m_RenderTerrain;
             }
 
             ImGui::Spacing();
