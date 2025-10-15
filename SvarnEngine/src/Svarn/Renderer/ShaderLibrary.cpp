@@ -3,29 +3,28 @@
 #include <Svarn/Renderer/ShaderLibrary.h>
 #include <utility>
 #include "Svarn/Log.h"
-#include "imgui.h"
 
 namespace Svarn {
 
     void ShaderLibrary::Init() {
         std::shared_ptr<Shader> pbrShader;
         pbrShader.reset(Shader::Create());
-        pbrShader->Attach(ShaderStage::Vertex, "SvarnEngine/src/Svarn/Renderer/Shaders/pbr.vs");
-        pbrShader->Attach(ShaderStage::Fragment, "SvarnEngine/src/Svarn/Renderer/Shaders/pbr.fs");
+        pbrShader->Attach(ShaderStage::Vertex, "SvarnEngine/src/Svarn/Renderer/Shaders/pbr.vert");
+        pbrShader->Attach(ShaderStage::Fragment, "SvarnEngine/src/Svarn/Renderer/Shaders/pbr.frag");
         pbrShader->Link();
         Add("PBR", pbrShader);
 
         std::shared_ptr<Shader> depthPassShader;
         depthPassShader.reset(Shader::Create());
-        depthPassShader->Attach(ShaderStage::Vertex, "SvarnEngine/src/Svarn/Renderer/Shaders/directional_shadow_map.vs");
-        depthPassShader->Attach(ShaderStage::Fragment, "SvarnEngine/src/Svarn/Renderer/Shaders/directional_shadow_map.fs");
+        depthPassShader->Attach(ShaderStage::Vertex, "SvarnEngine/src/Svarn/Renderer/Shaders/directional_shadow_map.vert");
+        depthPassShader->Attach(ShaderStage::Fragment, "SvarnEngine/src/Svarn/Renderer/Shaders/directional_shadow_map.frag");
         depthPassShader->Link();
         Add("DepthPass", depthPassShader);
 
         std::shared_ptr<Shader> terrainShader;
         terrainShader.reset(Shader::Create());
-        terrainShader->Attach(ShaderStage::Vertex, "SvarnEngine/src/Svarn/Renderer/Shaders/terrain.vs");
-        terrainShader->Attach(ShaderStage::Fragment, "SvarnEngine/src/Svarn/Renderer/Shaders/terrain.fs");
+        terrainShader->Attach(ShaderStage::Vertex, "SvarnEngine/src/Svarn/Renderer/Shaders/terrain.vert");
+        terrainShader->Attach(ShaderStage::Fragment, "SvarnEngine/src/Svarn/Renderer/Shaders/terrain.frag");
         terrainShader->Link();
         Add("Terrain", terrainShader);
 
