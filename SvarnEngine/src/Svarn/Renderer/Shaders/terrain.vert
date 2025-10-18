@@ -16,96 +16,131 @@ out vec2 v_TexCoord;
 out vec4 v_Tangent;
 out mat3 v_TangentBasis;
 
-float rand(float n) {
-    return fract(sin(n) * 43758.5453123);
+// Permutation table duplicated to 512 entries (avoids extra masking)
+const int PERM_SIZE = 512;
+const int perm[PERM_SIZE] = int[PERM_SIZE](
+        // 0..255
+        151, 160, 137, 91, 90, 15, 131, 13, 201, 95, 96, 53, 194, 233, 7, 225, 140, 36, 103, 30, 69, 142,
+        8, 99, 37, 240, 21, 10, 23, 190, 6, 148, 247, 120, 234, 75, 0, 26, 197, 62, 94, 252, 219, 35, 11,
+        88, 237, 149, 56, 87, 174, 20, 125, 136, 171, 168, 68, 175, 74, 165, 71, 134, 139, 48, 27, 166,
+        77, 146, 158, 231, 83, 111, 229, 122, 60, 211, 133, 230, 220, 105, 92, 41, 55, 46, 245, 40, 244,
+        102, 143, 54, 65, 25, 63, 161, 1, 216, 80, 73, 209, 76, 132, 187, 208, 89, 18, 169, 200, 196,
+        135, 130, 116, 188, 159, 86, 164, 100, 109, 198, 173, 186, 3, 64, 52, 217, 226, 250, 124, 123,
+        5, 202, 38, 147, 118, 126, 255, 82, 85, 212, 207, 206, 59, 227, 47, 16, 58, 17, 182, 189, 28, 42,
+        223, 183, 170, 213, 119, 248, 152, 2, 44, 154, 163, 70, 221, 153, 101, 155, 167, 43, 172, 9,
+        129, 22, 39, 253, 19, 98, 108, 110, 79, 113, 224, 232, 178, 185, 112, 104, 218, 246, 97, 228,
+        251, 34, 242, 193, 238, 210, 144, 12, 191, 179, 162, 241, 81, 51, 145, 235, 249, 14, 239, 107,
+        49, 192, 214, 31, 181, 199, 106, 157, 184, 84, 204, 176, 115, 121, 50, 45, 127, 4, 150, 254,
+        138, 236, 205, 93, 222, 114, 67, 29, 24, 72, 243, 141, 128, 195, 78, 66, 215, 61, 156, 180, 117,
+        32, 57, 177, 33, 203,
+        // 256..511 (repeat)
+        151, 160, 137, 91, 90, 15, 131, 13, 201, 95, 96, 53, 194, 233, 7, 225, 140, 36, 103, 30, 69, 142,
+        8, 99, 37, 240, 21, 10, 23, 190, 6, 148, 247, 120, 234, 75, 0, 26, 197, 62, 94, 252, 219, 35, 11,
+        88, 237, 149, 56, 87, 174, 20, 125, 136, 171, 168, 68, 175, 74, 165, 71, 134, 139, 48, 27, 166,
+        77, 146, 158, 231, 83, 111, 229, 122, 60, 211, 133, 230, 220, 105, 92, 41, 55, 46, 245, 40, 244,
+        102, 143, 54, 65, 25, 63, 161, 1, 216, 80, 73, 209, 76, 132, 187, 208, 89, 18, 169, 200, 196,
+        135, 130, 116, 188, 159, 86, 164, 100, 109, 198, 173, 186, 3, 64, 52, 217, 226, 250, 124, 123,
+        5, 202, 38, 147, 118, 126, 255, 82, 85, 212, 207, 206, 59, 227, 47, 16, 58, 17, 182, 189, 28, 42,
+        223, 183, 170, 213, 119, 248, 152, 2, 44, 154, 163, 70, 221, 153, 101, 155, 167, 43, 172, 9,
+        129, 22, 39, 253, 19, 98, 108, 110, 79, 113, 224, 232, 178, 185, 112, 104, 218, 246, 97, 228,
+        251, 34, 242, 193, 238, 210, 144, 12, 191, 179, 162, 241, 81, 51, 145, 235, 249, 14, 239, 107,
+        49, 192, 214, 31, 181, 199, 106, 157, 184, 84, 204, 176, 115, 121, 50, 45, 127, 4, 150, 254,
+        138, 236, 205, 93, 222, 114, 67, 29, 24, 72, 243, 141, 128, 195, 78, 66, 215, 61, 156, 180, 117,
+        32, 57, 177, 33, 203
+    );
+
+// -----------------------------------------------------------------------------
+// Helpers
+float Lerp(float t, float a, float b) {
+    return a + t * (b - a);
 }
 
-float noise(float p) {
-    float fl = floor(p);
-    float fc = fract(p);
-    return mix(rand(fl), rand(fl + 1.0), fc);
+float Fade(float t) {
+    return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
 }
+
+float Grad(int hash, float x, float y, float z) {
+    int h = hash & 15;
+    float u = (h < 8) ? x : y;
+    float v = (h < 4) ? y : ((h == 12 || h == 14) ? x : z);
+    float r1 = ((h & 1) == 0) ? u : -u;
+    float r2 = ((h & 2) == 0) ? v : -v;
+    return r1 + r2;
+}
+
+// -----------------------------------------------------------------------------
+// Perlin noise (2D input; uses z = 0.5 slice of 3D noise)
+float PerlinNoise(vec2 uv) {
+    float x = uv.x;
+    float y = uv.y;
+    float z = 0.5;
+
+    int X = int(floor(x)) & 255;
+    int Y = int(floor(y)) & 255;
+    int Z = int(floor(z)) & 255;
+
+    x -= floor(x);
+    y -= floor(y);
+    z -= floor(z);
+
+    float u = Fade(x);
+    float v = Fade(y);
+    float w = Fade(z);
+
+    int A = perm[X] + Y;
+    int AA = perm[A] + Z;
+    int AB = perm[A + 1] + Z;
+    int B = perm[X + 1] + Y;
+    int BA = perm[B] + Z;
+    int BB = perm[B + 1] + Z;
+
+    float res = Lerp(
+            w,
+            Lerp(
+                v,
+                Lerp(u, Grad(perm[AA], x, y, z),
+                    Grad(perm[BA], x - 1., y, z)),
+                Lerp(u, Grad(perm[AB], x, y - 1., z),
+                    Grad(perm[BB], x - 1., y - 1., z))
+            ),
+            Lerp(
+                v,
+                Lerp(u, Grad(perm[AA + 1], x, y, z - 1.),
+                    Grad(perm[BA + 1], x - 1., y, z - 1.)),
+                Lerp(u, Grad(perm[AB + 1], x, y - 1., z - 1.),
+                    Grad(perm[BB + 1], x - 1., y - 1., z - 1.))
+            )
+        );
+
+    return res;
+}
+
+#define NUM_OCTAVES 8
+#define PERSISTENCE 0.75
+#define LACUNARITY 0.75
 
 float rand(vec2 n) {
     return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);
 }
 
-float noise(vec2 n) {
-    const vec2 d = vec2(0.0, 1.0);
-    vec2 b = floor(n), f = smoothstep(vec2(0.0), vec2(1.0), fract(n));
-    return mix(mix(rand(b), rand(b + d.yx), f.x), mix(rand(b + d.xy), rand(b + d.yy), f.x), f.y);
-}
+float noise(vec2 p) {
+    float amplitude = 1.0f;
+    float frequency = 1.0f;
 
-float mod289(float x) {
-    return x - floor(x * (1.0 / 289.0)) * 289.0;
-}
-vec4 mod289(vec4 x) {
-    return x - floor(x * (1.0 / 289.0)) * 289.0;
-}
-vec4 perm(vec4 x) {
-    return mod289(((x * 34.0) + 1.0) * x);
-}
+    float height = 0.0f;
 
-float noise(vec3 p) {
-    vec3 a = floor(p);
-    vec3 d = p - a;
-    d = d * d * (3.0 - 2.0 * d);
+    for (int i = 0; i < NUM_OCTAVES; i++) {
+        float x_sample = p.x * frequency / 10.0;
+        float y_sample = p.y * frequency / 10.0;
 
-    vec4 b = a.xxyy + vec4(0.0, 1.0, 0.0, 1.0);
-    vec4 k1 = perm(b.xyxy);
-    vec4 k2 = perm(k1.xyxy + b.zzww);
+        float perlin_value = PerlinNoise(vec2(x_sample, y_sample));
+        height += perlin_value * amplitude;
 
-    vec4 c = k2 + a.zzzz;
-    vec4 k3 = perm(c);
-    vec4 k4 = perm(c + 1.0);
-
-    vec4 o1 = fract(k3 * (1.0 / 41.0));
-    vec4 o2 = fract(k4 * (1.0 / 41.0));
-
-    vec4 o3 = o2 * d.z + o1 * (1.0 - d.z);
-    vec2 o4 = o3.yw * d.x + o3.xz * (1.0 - d.x);
-
-    return o4.y * d.y + o4.x * (1.0 - d.y);
-}
-
-#define NUM_OCTAVES 5
-
-float fbm(float x) {
-    float v = 0.0;
-    float a = 0.5;
-    float shift = float(100);
-    for (int i = 0; i < NUM_OCTAVES; ++i) {
-        v += a * noise(x);
-        x = x * 2.0 + shift;
-        a *= 0.5;
+        amplitude *= PERSISTENCE;
+        frequency *= LACUNARITY;
     }
-    return v;
-}
 
-float fbm(vec2 x) {
-    float v = 0.0;
-    float a = 0.5;
-    vec2 shift = vec2(100);
-    // Rotate to reduce axial bias
-    mat2 rot = mat2(cos(0.5), sin(0.5), -sin(0.5), cos(0.50));
-    for (int i = 0; i < NUM_OCTAVES; ++i) {
-        v += a * noise(x);
-        x = rot * x * 2.0 + shift;
-        a *= 0.5;
-    }
-    return v;
-}
-
-float fbm(vec3 x) {
-    float v = 0.0;
-    float a = 0.5;
-    vec3 shift = vec3(100);
-    for (int i = 0; i < NUM_OCTAVES; ++i) {
-        v += a * noise(x);
-        x = x * 2.0 + shift;
-        a *= 0.5;
-    }
-    return v;
+    return height;
 }
 
 mat3 computeNormalMatrix(mat4 M) {
@@ -113,8 +148,8 @@ mat3 computeNormalMatrix(mat4 M) {
 }
 
 vec3 noiseNormal(vec2 p, float eps) {
-    float dx = (fbm(p + vec2(eps, 0.0)) - fbm(p - vec2(eps, 0.0)));
-    float dy = (fbm(p + vec2(0.0, eps)) - fbm(p - vec2(0.0, eps)));
+    float dx = (noise(p + vec2(eps, 0.0)) - noise(p - vec2(eps, 0.0)));
+    float dy = (noise(p + vec2(0.0, eps)) - noise(p - vec2(0.0, eps)));
     return vec3(dx, 0.0, dy);
 }
 
@@ -122,7 +157,7 @@ void main()
 {
     // world-space position
     vec4 worldPos = u_ModelMatrix * vec4(a_Position, 1.0);
-    worldPos.y = fbm(worldPos.xz);
+    worldPos.y += noise(worldPos.xz) * 20;
 
     v_Position = worldPos.xyz;
 
