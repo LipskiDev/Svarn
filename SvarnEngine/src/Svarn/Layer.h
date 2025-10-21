@@ -12,9 +12,9 @@ namespace Svarn {
 
         virtual void OnAttach() {};
         virtual void OnDetach() {};
-        virtual void OnUpdate(Timestep ts) {};
-        virtual void OnImGuiRender(Timestep ts) {};
-        virtual void OnEvent(Event& e) {};
+        virtual void OnUpdate([[maybe_unused]] Timestep ts) {};
+        virtual void OnImGuiRender([[maybe_unused]] Timestep ts) {};
+        virtual void OnEvent([[maybe_unused]] Event& e) {};
 
         inline const std::string& GetName() const { return m_DebugName; }
 

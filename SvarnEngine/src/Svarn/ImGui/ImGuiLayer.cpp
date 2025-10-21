@@ -339,6 +339,6 @@ namespace Svarn {
         }
     }
 
-    void ImGuiLayer::OnImGuiRender(Timestep ts) { static bool show = true; }
+    void ImGuiLayer::OnImGuiRender([[maybe_unused]] Timestep ts) {}
 
 }  // namespace Svarn
