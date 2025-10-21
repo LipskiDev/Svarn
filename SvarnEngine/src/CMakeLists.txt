@@ -32,6 +32,9 @@
 
     "Svarn/KeyCodes.h"
 
+    "Svarn/Core/ThreadHandler.cpp"
+    "Svarn/Core/ThreadHandler.h"
+
     "Svarn/Events/ApplicationEvent.h"
     "Svarn/Events/Event.h"
     "Svarn/Events/KeyEvent.h"
