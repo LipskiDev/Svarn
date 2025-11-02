@@ -2,16 +2,19 @@
 #include <Svarn.h>
 
 #include "Svarn/Application.h"
+#include "Svarn/Core/ThreadHandler.h"
 #include "Svarn/Renderer/Framebuffer.h"
 #include "Svarn/Renderer/Primitives.h"
 #include "Svarn/Renderer/ShaderLibrary.h"
 #include "Svarn/Renderer/Texture.h"
 #include "Svarn/Layer.h"
 #include "Svarn/Scene/DirectionalLight.h"
+#include "Svarn/Terrain/TerrainStreamer.h"
 #include "imgui.h"
 #include <Svarn/Scene/PerspectiveCamera.h>
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_transform.hpp>
+#include <thread>
 
 using namespace Svarn;
 
@@ -19,35 +22,8 @@ class ExampleLayer : public Layer {
     std::shared_ptr<PerspectiveCamera> m_Camera;
     std::shared_ptr<DirectionalLight> m_Light;
 
-    std::shared_ptr<Mesh> m_SphereMesh;
-
-    std::shared_ptr<Mesh> m_Ground;
-    std::shared_ptr<Texture> m_GroundTexture;
-    Material m_GroundMaterial = Material::New();
-    Transform m_GroundTransform = Transform(glm::vec3(0.0f, -10.f, 0.0f), glm::vec3(100.f), glm::vec3(glm::radians(-90.0f), 0.0f, 0.0f));
-
-    std::shared_ptr<Model> m_Cerberus;
-    std::shared_ptr<Texture> m_CerberusAlbedo;
-    std::shared_ptr<Texture> m_CerberusNormals;
-    std::shared_ptr<Texture> m_CerberusRoughness;
-    std::shared_ptr<Texture> m_CerberusMetallic;
-
-    Material m_CerberusMaterial = Material::New();
-
-    Transform m_CerberusTransform = Transform(glm::vec3(-65.0, 30.0, 0.0), glm::vec3(1.0), glm::vec3(0.0f, glm::radians(90.0f), glm::radians(90.0f)));
-
-    std::shared_ptr<Shader> m_PBRShader;
-
-    Material m_sphereMaterial = Material::New();
-
-    // PBR Variables
-    glm::vec3 m_SphereAlbedo = glm::vec3(1.0, 1.0, 1.0);
-    float m_SphereRoughness = 1.0;
-    float m_SphereMetallic = 1.0;
-
     RendererAPIInfo apiInfo;
 
-    bool m_RenderModel = false;
     bool m_RenderTerrain = true;
 
     public:
@@ -56,39 +32,15 @@ class ExampleLayer : public Layer {
 
         m_Camera.reset(new PerspectiveCamera(90, 16.0 / 9.0, 1.f, 10000));
         m_Light.reset(new DirectionalLight(glm::vec3(0.0, -1.0, 0.0), glm::vec3(1.0, 1.0, 1.0)));
-
-        m_CerberusAlbedo.reset(Texture::Create("Sandbox/assets/textures/Cerberus_A.tga"));
-        m_CerberusNormals.reset(Texture::Create("Sandbox/assets/textures/Cerberus_N.tga"));
-        m_CerberusRoughness.reset(Texture::Create("Sandbox/assets/textures/Cerberus_R.tga"));
-        m_CerberusMetallic.reset(Texture::Create("Sandbox/assets/textures/Cerberus_M.tga"));
-
-        m_CerberusMaterial =
-            Material::FromTextures("Cerberus Material", m_CerberusAlbedo, m_CerberusNormals, m_CerberusRoughness, m_CerberusMetallic);
-
-        m_Cerberus.reset(Model::Create("Sandbox/assets/models/Cerberus_LP.FBX"));
-
-        m_Cerberus->SetMaterial(m_CerberusMaterial);
-
-        m_PBRShader = GetShaderLibrary().Get("PBR");
-
-        m_SphereMesh = Primitives::Sphere(10, 64, 64);
-        m_SphereMesh->SetMaterial(m_sphereMaterial);
-        m_Ground = Primitives::Grid(128, 128, 1);
-
-        m_GroundTexture.reset(Texture::Create("Sandbox/assets/textures/PNG/Green/texture_01.png"));
-        m_GroundTexture->SetFiltering(TextureFiltering::Nearest, TextureFiltering::Nearest);
-        m_GroundMaterial.SetMetallicValue(0.0);
-        m_GroundMaterial.SetRoughnessValue(1.0);
-        m_GroundMaterial.SetAlbedoTexture(m_GroundTexture);
-        m_Ground->SetMaterial(m_GroundMaterial);
     }
 
     void OnUpdate(Timestep ts) override {
         m_Camera->OnUpdate(ts);
 
         GetRenderer().Submit(m_Light);
-        if (Input::IsKeyPressed(SV_KEY_R)) {
-            m_PBRShader->ReloadShader();
+
+        if (Input::IsKeyPressed(SV_KEY_L)) {
+            GetThreadHandler().enqueue([] { std::cout << "L key press handled in thread " << std::this_thread::get_id() << std::endl; });
         }
 
         GetRenderer().BeginScene(m_Camera);
@@ -106,6 +58,15 @@ class ExampleLayer : public Layer {
             ImGui::Text("Vendor: %s", apiInfo.Vendor.c_str());
             ImGui::Text("Renderer: %s", apiInfo.Renderer.c_str());
             ImGui::Text("Version: %s", apiInfo.Version.c_str());
+
+            ImGui::Spacing();
+            ImGui::Separator();
+            ImGui::Spacing();
+
+            auto camPos = m_Camera->GetPosition();
+            auto camChunk = GetTerrainStreamer().GetCurrentChunk(*m_Camera);
+            ImGui::Text("Camera Coordinates: (%f, %f)", camPos.x, camPos.z);
+            ImGui::Text("Camera Chunk: (%d, %d)", (int)camChunk.x, (int)camChunk.z);
 
             ImGui::Spacing();
             ImGui::Separator();

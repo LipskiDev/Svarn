@@ -4,7 +4,6 @@
 #include <string>
 #include <glm/glm.hpp>
 #include "Svarn/Renderer/Texture.h"
-#include "glad/gl.h"
 
 namespace Svarn {
 
@@ -30,8 +29,10 @@ namespace Svarn {
         virtual void SetFloat(const std::string& name, const float& value) = 0;
         virtual void SetBool(const std::string& name, const bool& value) = 0;
         virtual void SetMat4(const std::string& name, const glm::mat4& value) = 0;
+        virtual void SetVec2(const std::string& name, const glm::vec2& value) = 0;
         virtual void SetVec3(const std::string& name, const glm::vec3& value) = 0;
-        virtual void BindTexture(const std::string& name, std::shared_ptr<Texture> texture) = 0;
+        virtual void BindInputTexture(const std::string& name, std::shared_ptr<Texture> texture) = 0;
+        virtual void BindOutputTexture(const std::string& name, std::shared_ptr<Texture> texture, TextureFormat format) = 0;
         virtual int GetShaderID() const = 0;
 
         virtual void ReloadShader() = 0;

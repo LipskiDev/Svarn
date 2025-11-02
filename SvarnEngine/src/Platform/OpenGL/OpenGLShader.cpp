@@ -81,7 +81,10 @@ namespace Svarn {
         m_ActiveTextures = 0;
     };
 
-    void OpenGLShader::Dispatch(uint32_t groupsX, uint32_t groupsY, uint32_t groupsZ) { glDispatchCompute(groupsX, groupsY, groupsZ); }
+    void OpenGLShader::Dispatch(uint32_t groupsX, uint32_t groupsY, uint32_t groupsZ) {
+        glDispatchCompute(groupsX, groupsY, groupsZ);
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    }
 
     void OpenGLShader::SetFloat(const std::string& uniformName, const float& value) {
         GLint uniformLocation = glGetUniformLocation(m_ShaderID, uniformName.c_str());
@@ -98,17 +101,30 @@ namespace Svarn {
         glUniformMatrix4fv(uniformLocation, 1, GL_FALSE, glm::value_ptr(value));
     };
 
+    void OpenGLShader::SetVec2(const std::string& uniformName, const glm::vec2& value) {
+        GLint uniformLocation = glGetUniformLocation(m_ShaderID, uniformName.c_str());
+        glUniform2f(uniformLocation, value.x, value.y);
+    }
+
     void OpenGLShader::SetVec3(const std::string& uniformName, const glm::vec3& value) {
         GLint uniformLocation = glGetUniformLocation(m_ShaderID, uniformName.c_str());
         glUniform3f(uniformLocation, value.x, value.y, value.z);
     };
 
-    void OpenGLShader::BindTexture(const std::string& uniformName, std::shared_ptr<Texture> texture) {
+    void OpenGLShader::BindInputTexture(const std::string& uniformName, std::shared_ptr<Texture> texture) {
         GLint uniformLocation = glGetUniformLocation(m_ShaderID, uniformName.c_str());
         glActiveTexture(GL_TEXTURE0 + m_ActiveTextures);
         glBindTexture(GL_TEXTURE_2D, texture->m_RendererID);
         glUniform1i(uniformLocation, m_ActiveTextures);
         ++m_ActiveTextures;
+    }
+
+    void OpenGLShader::BindOutputTexture([[maybe_unused]] const std::string& name, std::shared_ptr<Texture> texture, TextureFormat format) {
+        GLuint unit = m_ActiveTextures;
+        unsigned internal, tFormat, type;
+        texture->MapFormat(format, internal, tFormat, type);
+        glBindImageTexture(0, texture->m_RendererID, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R32F);
+        m_ActiveTextures++;
     }
 
     GLuint OpenGLShader::CompileShader(ShaderStage stage, std::string path) {

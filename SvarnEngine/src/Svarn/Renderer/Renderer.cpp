@@ -4,7 +4,9 @@
 #include <memory>
 #include "Svarn/Log.h"
 #include "Svarn/Renderer/Framebuffer.h"
+#include "Svarn/Renderer/Texture.h"
 #include "Svarn/Renderer/VertexArray.h"
+#include "Svarn/Terrain/TerrainStreamer.h"
 #include <Svarn/Renderer/ShaderLibrary.h>
 #include <Svarn/Renderer/Primitives.h>
 
@@ -31,7 +33,35 @@ namespace Svarn {
         m_TerrainShader = GetShaderLibrary().Get("Terrain");
         if (!m_TerrainShader) SV_CORE_INFO("Terrain Shader not found");
 
-        m_PatchMesh = Primitives::Grid(512, 512, 1);
+        m_ChunkComputationShader = GetShaderLibrary().Get("ComputeChunk");
+        if (!m_ChunkComputationShader) SV_CORE_INFO("Compute Chunk Shader not found");
+
+        m_PatchMesh = Primitives::Grid(256, 256, 1);
+
+        TextureSpecification spec;
+        spec.format = TextureFormat::R32F;
+        spec.height = 256;
+        spec.width = 256;
+        spec.filtering = TextureFiltering::Linear;
+        spec.wrapping = TextureWrapping::ClampToEdge;
+
+        m_HeightmapTextureChunk00.reset(Texture::Create(spec));
+
+        m_ChunkComputationShader->Bind();
+
+        m_ChunkComputationShader->BindOutputTexture("", m_HeightmapTextureChunk00, TextureFormat::R32F);
+
+        m_ChunkComputationShader->SetVec2("size", glm::vec2(256, 256));
+        m_ChunkComputationShader->SetVec2("size", glm::vec2(0, 0));
+        m_ChunkComputationShader->SetFloat("texelWorld", 1);
+        m_ChunkComputationShader->SetFloat("baseFreq", 1);
+        m_ChunkComputationShader->SetFloat("octaves", 6);
+        m_ChunkComputationShader->SetFloat("lacunarity", 0.5);
+        m_ChunkComputationShader->SetFloat("gain", 0.5);
+        m_ChunkComputationShader->SetFloat("amplitude", 0.5);
+        m_ChunkComputationShader->SetFloat("seed", 1);
+
+        m_ChunkComputationShader->Dispatch(256, 256, 1);
 
         SV_CORE_TRACE("Successfully initialized Renderer");
     }
@@ -65,7 +95,7 @@ namespace Svarn {
         // Physically based Rendering pass using shadow mapping from direction light
 
         m_PBRShader->Bind();
-        m_PBRShader->BindTexture("shadowMap", m_DepthMapLight->GetDepthAttachment());
+        m_PBRShader->BindInputTexture("shadowMap", m_DepthMapLight->GetDepthAttachment());
 
         if (m_DirectionalLight) {
             m_PBRShader->SetVec3("u_DirLight.direction", m_DirectionalLight->m_LightDirection);
@@ -89,6 +119,29 @@ namespace Svarn {
 
         // Terrain Rendering
         if (m_ShouldRenderTerrain) {
+            // TerrainStreamer->GetDesired();
+            auto terrainPlan = GetTerrainStreamer().ComputePlan(*m_Camera);
+
+            for (auto chunk : terrainPlan.gpuGens) {
+            }
+            // for each desired:
+            //      if unloaded:
+            //          enqueueCPUWorker(load)
+            //      if resident:
+            //          touch(chunk) (for eviction)
+            //
+            //  Turn CPU data into GPU data, drain completed worker load
+            //
+            //  for each resident:
+            //      if visible: draw(chunk)
+            //
+            //  while overGpuBudget():
+            //      evict (free memory) chunk by:
+            //          - Least Recently Used
+            //          - Least Frequently Used
+            //          - Distance
+            //          - Priority (Screen space)
+
             m_TerrainShader->Bind();
             m_TerrainShader->SetMat4("u_ProjectionMatrix", m_ProjectionMatrix);
             m_TerrainShader->SetMat4("u_ViewMatrix", m_ViewMatrix);

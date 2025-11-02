@@ -24,6 +24,9 @@
     "Svarn/Scene/PerspectiveCamera.cpp"
     "Svarn/Scene/PerspectiveCamera.h"
 
+    "Svarn/Terrain/TerrainStreamer.cpp"
+    "Svarn/Terrain/TerrainStreamer.h"
+
     "Svarn/Log.cpp"
     "Svarn/Log.h"
     "Svarn/Window.h"

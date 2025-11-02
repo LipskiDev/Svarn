@@ -28,6 +28,12 @@ namespace Svarn {
         terrainShader->Link();
         Add("Terrain", terrainShader);
 
+        std::shared_ptr<Shader> computeChunkShader;
+        computeChunkShader.reset(Shader::Create());
+        computeChunkShader->Attach(ShaderStage::Compute, "SvarnEngine/src/Svarn/Renderer/Shaders/chunk_generation.comp");
+        computeChunkShader->Link();
+        Add("ComputeChunk", computeChunkShader);
+
         SV_CORE_INFO("Successfully initialized ShaderLibrary");
     }
 

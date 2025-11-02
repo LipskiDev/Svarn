@@ -27,6 +27,6 @@ namespace Svarn {
         bool m_IsRunning = false;
     };
 
-    ThreadHandler& GetThreadHandler();
+    SVARN_API ThreadHandler& GetThreadHandler();
 
 }  // namespace Svarn

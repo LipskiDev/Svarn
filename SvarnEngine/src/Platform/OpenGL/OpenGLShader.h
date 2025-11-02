@@ -44,9 +44,11 @@ namespace Svarn {
         virtual void SetFloat(const std::string& uniformName, const float& value) override;
         virtual void SetBool(const std::string& uniformName, const bool& value) override;
         virtual void SetMat4(const std::string& uniformName, const glm::mat4& value) override;
+        virtual void SetVec2(const std::string& name, const glm::vec2& value) override;
         virtual void SetVec3(const std::string& uniformName, const glm::vec3& value) override;
-        virtual void BindTexture(const std::string& name, std::shared_ptr<Texture> texture) override;
+        virtual void BindInputTexture(const std::string& name, std::shared_ptr<Texture> texture) override;
 
+        virtual void BindOutputTexture(const std::string& name, std::shared_ptr<Texture> texture, TextureFormat format) override;
         virtual void ReloadShader() override;
 
         private:

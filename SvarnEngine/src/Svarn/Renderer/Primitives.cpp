@@ -2,6 +2,7 @@
 
 #include <Svarn/Renderer/Primitives.h>
 #include "Svarn/Core.h"
+#include "Svarn/Log.h"
 #include "Svarn/Renderer/Buffer.h"
 #include "Svarn/Renderer/VertexArray.h"
 

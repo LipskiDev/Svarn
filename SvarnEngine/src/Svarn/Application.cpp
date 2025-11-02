@@ -11,7 +11,6 @@
 #include <Svarn/Core/ThreadHandler.h>
 
 namespace Svarn {
-    using std::this_thread::get_id;
 
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
     Application* Application::s_Instance = nullptr;

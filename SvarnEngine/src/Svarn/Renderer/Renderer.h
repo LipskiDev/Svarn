@@ -49,6 +49,10 @@ namespace Svarn {
         std::shared_ptr<Shader> m_DepthShader;
         std::shared_ptr<Shader> m_PBRShader;
         std::shared_ptr<Shader> m_TerrainShader;
+        std::shared_ptr<Shader> m_ChunkComputationShader;
+
+        // Temp
+        std::shared_ptr<Texture> m_HeightmapTextureChunk00;
 
         // Terrain Renderer Variables
         bool m_ShouldRenderTerrain = false;

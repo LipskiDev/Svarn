@@ -48,7 +48,7 @@ namespace Svarn {
 
         if (m_UseAlbedoTexture) {
             shader->SetBool("material.useAlbedoTexture", true);
-            shader->BindTexture("material.albedoTexture", m_AlbedoTexture);
+            shader->BindInputTexture("material.albedoTexture", m_AlbedoTexture);
         } else {
             shader->SetBool("material.useAlbedoTexture", false);
             shader->SetVec3("material.albedo", m_AlbedoValue);
@@ -56,14 +56,14 @@ namespace Svarn {
 
         if (m_UseNormalTexture) {
             shader->SetBool("material.useNormalTexture", true);
-            shader->BindTexture("material.normalTexture", m_NormalTexture);
+            shader->BindInputTexture("material.normalTexture", m_NormalTexture);
         } else {
             shader->SetBool("material.useNormalTexture", false);
         }
 
         if (m_UseRoughnessTexture) {
             shader->SetBool("material.useRoughnessTexture", true);
-            shader->BindTexture("material.roughnessTexture", m_RoughnessTexture);
+            shader->BindInputTexture("material.roughnessTexture", m_RoughnessTexture);
         } else {
             shader->SetBool("material.useRoughnessTexture", false);
             shader->SetFloat("material.roughness", m_RoughnessValue);
@@ -71,7 +71,7 @@ namespace Svarn {
 
         if (m_UseMetallicTexture) {
             shader->SetBool("material.useMetallicTexture", true);
-            shader->BindTexture("material.metallicTexture", m_MetallicTexture);
+            shader->BindInputTexture("material.metallicTexture", m_MetallicTexture);
         } else {
             shader->SetBool("material.useMetallicTexture", false);
             shader->SetFloat("material.metallic", m_MetallicValue);
