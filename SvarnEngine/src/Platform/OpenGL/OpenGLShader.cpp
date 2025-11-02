@@ -1,6 +1,8 @@
 #include <svpch.h>
 #include <Platform/OpenGL/OpenGLShader.h>
 #include <sys/types.h>
+#include <filesystem>
+#include <unordered_set>
 #include "Svarn/Core.h"
 #include "Svarn/Log.h"
 #include "Svarn/Renderer/Shader.h"
@@ -194,23 +196,55 @@ namespace Svarn {
     };
 
     std::string OpenGLShader::ReadFile(const std::string& filepath) {
+        std::unordered_set<std::string> includedFiles;
+        return ReadFileRecursive(filepath, includedFiles);
+    }
+
+    std::string OpenGLShader::ReadFileRecursive(const std::string& filepath, std::unordered_set<std::string>& includedFiles) {
+        namespace fs = std::filesystem;
+        if (includedFiles.contains(filepath)) {
+            SV_CORE_ERROR("Circular include detected for file '{0}'", filepath);
+            return {};
+        }
+
+        includedFiles.insert(filepath);
+
         std::ifstream in(filepath, std::ios::in | std::ios::binary);
         if (!in) {
-            SV_CORE_ERROR("Could not open file '{0}'", filepath);
+            SV_CORE_ERROR("Could not open shader file '{0}'", filepath);
             return {};
         }
 
-        in.seekg(0, std::ios::end);
-        auto end = in.tellg();
-        if (end == -1) {
-            SV_CORE_ERROR("Could not read from file '{0}'", filepath);
-            return {};
+        std::ostringstream output;
+        std::string line;
+        fs::path currentDir = fs::path(filepath).parent_path();
+
+        while (std::getline(in, line)) {
+            std::string trimmed = line;
+            trimmed.erase(0, trimmed.find_first_not_of(" \t"));
+
+            if (trimmed.starts_with("#include")) {
+                size_t start = trimmed.find_first_of("\"<");
+                size_t end = trimmed.find_last_of("\">");
+                if (start != std::string::npos && end != std::string::npos && end > start) {
+                    std::string includePath = trimmed.substr(start + 1, end - start - 1);
+                    fs::path resolvedPath = currentDir / includePath;
+
+                    if (!fs::exists(resolvedPath)) {
+                        SV_CORE_ERROR("Included file not found: '{0}'", resolvedPath.string());
+                        continue;
+                    }
+
+                    std::string includedSource = ReadFileRecursive(resolvedPath.string(), includedFiles);
+                    output << "// Begin include: " << includePath << "\n" << includedSource << "\n// End include: " << includePath << "\n";
+                } else {
+                    SV_CORE_ERROR("Malformed #include directive in '{0}': {1}", filepath, line);
+                }
+            } else {
+                output << line << "\n";
+            }
         }
 
-        std::string result(static_cast<size_t>(end), '\0');
-        in.seekg(0, std::ios::beg);
-        in.read(&result[0], result.size());
-
-        return result;
+        return output.str();
     }
 }  // namespace Svarn

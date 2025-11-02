@@ -55,6 +55,7 @@ namespace Svarn {
         GLuint CompileShader(ShaderStage stage, std::string path);
         void LinkShaders(GLuint vertexShader, GLuint fragmentShader);
         std::string ReadFile(const std::string& filepath);
+        std::string ReadFileRecursive(const std::string& filepath, std::unordered_set<std::string>& includedFiles);
 
         std::unordered_map<ShaderStage, uint32_t> m_ShaderIDs;
         std::unordered_map<ShaderStage, std::string> m_ShaderPaths;
