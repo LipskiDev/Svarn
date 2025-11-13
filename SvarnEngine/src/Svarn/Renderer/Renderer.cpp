@@ -36,34 +36,16 @@ namespace Svarn {
         m_ChunkComputationShader = GetShaderLibrary().Get("ComputeChunk");
         if (!m_ChunkComputationShader) SV_CORE_INFO("Compute Chunk Shader not found");
 
-        m_PatchMesh = Primitives::Grid(256, 256, 1);
-
-        TextureSpecification spec;
-        spec.format = TextureFormat::R32F;
-        spec.height = 256;
-        spec.width = 256;
-        spec.filtering = TextureFiltering::Linear;
-        spec.wrapping = TextureWrapping::ClampToEdge;
-
-        m_HeightmapTextureChunk00.reset(Texture::Create(spec));
-
-        m_ChunkComputationShader->Bind();
-
-        m_ChunkComputationShader->BindOutputTexture("", m_HeightmapTextureChunk00, TextureFormat::R32F);
-
-        m_ChunkComputationShader->SetVec2("size", glm::vec2(256, 256));
-        m_ChunkComputationShader->SetVec2("size", glm::vec2(0, 0));
-        m_ChunkComputationShader->SetFloat("texelWorld", 1);
-        m_ChunkComputationShader->SetFloat("baseFreq", 1);
-        m_ChunkComputationShader->SetFloat("octaves", 6);
-        m_ChunkComputationShader->SetFloat("lacunarity", 0.5);
-        m_ChunkComputationShader->SetFloat("gain", 0.5);
-        m_ChunkComputationShader->SetFloat("amplitude", 0.5);
-        m_ChunkComputationShader->SetFloat("seed", 1);
-
-        m_ChunkComputationShader->Dispatch(256, 256, 1);
+        m_PatchMesh = Primitives::Grid(GetTerrainStreamer().GetChunkSize(), GetTerrainStreamer().GetChunkSize(), 1);
 
         SV_CORE_TRACE("Successfully initialized Renderer");
+
+        m_HeightMapTextureSpecification.height = GetTerrainStreamer().GetChunkSize();
+        m_HeightMapTextureSpecification.width = GetTerrainStreamer().GetChunkSize();
+        m_HeightMapTextureSpecification.filtering = TextureFiltering::Nearest;
+        m_HeightMapTextureSpecification.wrapping = TextureWrapping::ClampToEdge;
+        m_HeightMapTextureSpecification.generateMips = 0;
+        m_HeightMapTextureSpecification.format = TextureFormat::R32F;
     }
 
     void Renderer::BeginScene(const std::shared_ptr<Camera>& camera) {
@@ -76,46 +58,46 @@ namespace Svarn {
     void Renderer::EndScene() {
         Clear();
 
-        // Depth Pass from Global directional Light source
-        m_DepthShader->Bind();
-        m_DepthMapLight->Bind();
-
-        m_DepthShader->SetMat4("u_DirectionalLightTransformMatrix", m_DirectionalLight->CalculateLightTTransform());
-
-        for (const RenderObject& obj : renderQueue) {
-            obj.vertexArray->Bind();
-
-            m_DepthShader->SetMat4("u_ModelMatrix", obj.transform.GetModelMatrix());
-
-            RenderCommand::DrawIndexed(obj.vertexArray);
-        }
-        m_DepthMapLight->Unbind();
-        m_DepthShader->Unbind();
-
-        // Physically based Rendering pass using shadow mapping from direction light
-
-        m_PBRShader->Bind();
-        m_PBRShader->BindInputTexture("shadowMap", m_DepthMapLight->GetDepthAttachment());
-
-        if (m_DirectionalLight) {
-            m_PBRShader->SetVec3("u_DirLight.direction", m_DirectionalLight->m_LightDirection);
-            m_PBRShader->SetVec3("u_DirLight.radiance", m_DirectionalLight->m_LightRadiance);
-        }
-        m_PBRShader->SetMat4("u_DirectionalLightTransformMatrix", m_DirectionalLight->CalculateLightTTransform());
-        for (const RenderObject& obj : renderQueue) {
-            obj.vertexArray->Bind();
-            m_PBRShader->SetMat4("u_ProjectionMatrix", m_ProjectionMatrix);
-            m_PBRShader->SetMat4("u_ViewMatrix", m_ViewMatrix);
-            m_PBRShader->SetVec3("u_CameraPosition", m_Camera->GetPosition());
-
-            m_PBRShader->SetMat4("u_ModelMatrix", obj.transform.GetModelMatrix());
-
-            obj.material.BindToShader(m_PBRShader);
-            RenderCommand::DrawIndexed(obj.vertexArray);
-        }
-        m_PBRShader->Unbind();
-
-        m_DepthMapLight->Unbind();
+        // // Depth Pass from Global directional Light source
+        // m_DepthShader->Bind();
+        // m_DepthMapLight->Bind();
+        //
+        // m_DepthShader->SetMat4("u_DirectionalLightTransformMatrix", m_DirectionalLight->CalculateLightTTransform());
+        //
+        // for (const RenderObject& obj : renderQueue) {
+        //     obj.vertexArray->Bind();
+        //
+        //     m_DepthShader->SetMat4("u_ModelMatrix", obj.transform.GetModelMatrix());
+        //
+        //     RenderCommand::DrawIndexed(obj.vertexArray);
+        // }
+        // m_DepthMapLight->Unbind();
+        // m_DepthShader->Unbind();
+        //
+        // // Physically based Rendering pass using shadow mapping from direction light
+        //
+        // m_PBRShader->Bind();
+        // m_PBRShader->BindInputTexture("shadowMap", m_DepthMapLight->GetDepthAttachment());
+        //
+        // if (m_DirectionalLight) {
+        //     m_PBRShader->SetVec3("u_DirLight.direction", m_DirectionalLight->m_LightDirection);
+        //     m_PBRShader->SetVec3("u_DirLight.radiance", m_DirectionalLight->m_LightRadiance);
+        // }
+        // m_PBRShader->SetMat4("u_DirectionalLightTransformMatrix", m_DirectionalLight->CalculateLightTTransform());
+        // for (const RenderObject& obj : renderQueue) {
+        //     obj.vertexArray->Bind();
+        //     m_PBRShader->SetMat4("u_ProjectionMatrix", m_ProjectionMatrix);
+        //     m_PBRShader->SetMat4("u_ViewMatrix", m_ViewMatrix);
+        //     m_PBRShader->SetVec3("u_CameraPosition", m_Camera->GetPosition());
+        //
+        //     m_PBRShader->SetMat4("u_ModelMatrix", obj.transform.GetModelMatrix());
+        //
+        //     obj.material.BindToShader(m_PBRShader);
+        //     RenderCommand::DrawIndexed(obj.vertexArray);
+        // }
+        // m_PBRShader->Unbind();
+        //
+        // m_DepthMapLight->Unbind();
 
         // Terrain Rendering
         if (m_ShouldRenderTerrain) {
@@ -123,7 +105,54 @@ namespace Svarn {
             auto terrainPlan = GetTerrainStreamer().ComputePlan(*m_Camera);
 
             for (auto chunk : terrainPlan.gpuGens) {
+                SV_CORE_INFO("[Generate] id = ({0}, {1})", chunk.x, chunk.z);
+                glm::vec2 chunkOffset = GetTerrainStreamer().GetChunkOffset(chunk);
+
+                ChunkMeta setGeneratingStateMeta = GetTerrainStreamer().GetChunkMeta(chunk);
+                setGeneratingStateMeta.state = ChunkState::GeneratingGPU;
+                GetTerrainStreamer().SetChunkMeta(chunk, setGeneratingStateMeta);
+
+                std::shared_ptr<Texture> currentChunkHeightmapTexture;
+                currentChunkHeightmapTexture.reset(Texture::Create(m_HeightMapTextureSpecification));
+                m_ChunkComputationShader->Bind();
+
+                m_ChunkComputationShader->BindOutputTexture("", currentChunkHeightmapTexture, TextureFormat::R32F);
+
+                m_ChunkComputationShader->SetVec2("size", glm::vec2(GetTerrainStreamer().GetChunkSize()));
+                m_ChunkComputationShader->SetVec2("chunkOffset", chunkOffset);
+                SV_CORE_INFO("[Generate] Offset: {0} {1}", chunkOffset.x, chunkOffset.y);
+                m_ChunkComputationShader->SetFloat("texelWorld", 1);
+                m_ChunkComputationShader->SetFloat("baseFreq", 1);
+                m_ChunkComputationShader->SetFloat("octaves", 6);
+                m_ChunkComputationShader->SetFloat("lacunarity", 0.5);
+                m_ChunkComputationShader->SetFloat("gain", 0.5);
+                m_ChunkComputationShader->SetFloat("amplitude", 0.5);
+                m_ChunkComputationShader->SetFloat("seed", 1);
+
+                m_ChunkComputationShader->Dispatch(GetTerrainStreamer().GetChunkSize(), GetTerrainStreamer().GetChunkSize(), 1);
+
+                ChunkMeta setResidentStateMeta = GetTerrainStreamer().GetChunkMeta(chunk);
+                setResidentStateMeta.state = ChunkState::Resident;
+                GetTerrainStreamer().SetChunkMeta(chunk, setResidentStateMeta);
+
+                GetTerrainStreamer().AddChunkData(chunk, currentChunkHeightmapTexture);
             }
+
+            for (auto chunk : terrainPlan.resident) {
+                // SV_CORE_INFO("[Render] id = ({0}, {1})", chunk.x, chunk.z);
+                glm::vec2 chunkOffset = GetTerrainStreamer().GetChunkOffset(chunk);
+                ChunkData data = GetTerrainStreamer().GetChunkData(chunk);
+                m_TerrainShader->Bind();
+                m_TerrainShader->SetMat4("u_ProjectionMatrix", m_ProjectionMatrix);
+                m_TerrainShader->SetMat4("u_ViewMatrix", m_ViewMatrix);
+
+                glm::mat4 model = glm::mat4(1.0);
+                model = glm::translate(model, glm::vec3(chunkOffset.x, 0.0, chunkOffset.y));
+                m_TerrainShader->SetMat4("u_ModelMatrix", model);
+                m_TerrainShader->BindInputTexture("heightmap", data.heightmap);
+                RenderCommand::DrawIndexed(m_PatchMesh->GetVertexArray());
+            }
+
             // for each desired:
             //      if unloaded:
             //          enqueueCPUWorker(load)
@@ -142,11 +171,25 @@ namespace Svarn {
             //          - Distance
             //          - Priority (Screen space)
 
-            m_TerrainShader->Bind();
-            m_TerrainShader->SetMat4("u_ProjectionMatrix", m_ProjectionMatrix);
-            m_TerrainShader->SetMat4("u_ViewMatrix", m_ViewMatrix);
-            m_TerrainShader->SetMat4("u_ModelMatrix", glm::mat4(1.0));
-            RenderCommand::DrawIndexed(m_PatchMesh->GetVertexArray());
+            // m_TerrainShader->Bind();
+            // m_TerrainShader->SetMat4("u_ProjectionMatrix", m_ProjectionMatrix);
+            // m_TerrainShader->SetMat4("u_ViewMatrix", m_ViewMatrix);
+            // m_TerrainShader->SetMat4("u_ModelMatrix", glm::mat4(1.0));
+            // m_TerrainShader->BindInputTexture("heightmap", m_HeightmapTextureChunk00);
+            //
+            // RenderCommand::DrawIndexed(m_PatchMesh->GetVertexArray());
+            //
+            // m_TerrainShader->Unbind();
+            //
+            // m_TerrainShader->Bind();
+            // m_TerrainShader->SetMat4("u_ProjectionMatrix", m_ProjectionMatrix);
+            // m_TerrainShader->SetMat4("u_ViewMatrix", m_ViewMatrix);
+            //
+            // glm::mat4 model = glm::mat4(1.0);
+            // model = glm::translate(model, glm::vec3(0.0, 0.0, 256.0));
+            // m_TerrainShader->SetMat4("u_ModelMatrix", model);
+            // m_TerrainShader->BindInputTexture("heightmap", m_HeightmapTextureChunk01);
+            // RenderCommand::DrawIndexed(m_PatchMesh->GetVertexArray());
         }
 
         m_DepthMapLight->Clear();

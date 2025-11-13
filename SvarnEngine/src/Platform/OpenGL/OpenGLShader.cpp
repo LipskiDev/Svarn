@@ -77,7 +77,10 @@ namespace Svarn {
 
     bool OpenGLShader::IsComputeShader() const { return m_IsCompute; }
 
-    void OpenGLShader::Bind() { glUseProgram(m_ShaderID); };
+    void OpenGLShader::Bind() {
+        glUseProgram(m_ShaderID);
+        m_ActiveTextures = 0;
+    };
     void OpenGLShader::Unbind() {
         glUseProgram(0);
         m_ActiveTextures = 0;

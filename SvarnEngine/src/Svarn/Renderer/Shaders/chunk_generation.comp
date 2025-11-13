@@ -4,7 +4,7 @@ layout(local_size_x = 1, local_size_y = 1) in;
 
 layout(binding = 0, r32f) uniform writeonly image2D outHeight;
 
-uniform ivec2 size;
+uniform vec2 size;
 uniform vec2 chunkOffset;
 uniform float texelWorld;
 uniform float baseFreq;
@@ -30,7 +30,7 @@ float fbm (vec2 coordinate) {
     // Loop of octaves
     for (int i = 0; i < OCTAVES; i++)
     {
-        vec2 sample_coordinates = (frequency * 1.0 * coordinate) + (frequency * 1);
+        vec2 sample_coordinates = (frequency * 1.0 * coordinate) + (frequency * 1) / 100.0;
         value += amplitude * (0.5 + 0.5 * snoise(sample_coordinates));
         weights += amplitude;
         frequency *= 0.5;
@@ -44,9 +44,9 @@ float fbm (vec2 coordinate) {
 void main() {
     ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
 
-    vec2 worldXY = chunkOffset + vec2(gid) * texelWorld;
+    vec2 worldXY = (chunkOffset) + vec2(gid) * texelWorld;
 
-    float h = fbm(worldXY) * amplitude;
+    float h = (fbm(worldXY * 0.002) + fbm(worldXY / 100.0)) * 10;
 
     imageStore(outHeight, gid, vec4(h, 0, 0, 1));
 }

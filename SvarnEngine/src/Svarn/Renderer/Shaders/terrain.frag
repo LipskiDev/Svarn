@@ -9,8 +9,8 @@ in vec4 v_Tangent;
 in mat3 v_TangentBasis;
 
 float remapHeight(float h) {
-    float minH = -50.0;
-    float maxH = -20.0;
+    float minH = 500.0;
+    float maxH = 1000.0;
     return clamp((h - minH) / (maxH - minH), 0.0, 1.0);
 }
 

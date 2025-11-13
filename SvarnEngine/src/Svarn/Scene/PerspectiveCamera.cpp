@@ -30,7 +30,7 @@ namespace Svarn {
         glm::vec3 up = glm::rotate(m_Rotation, glm::vec3(0.0f, 1.0f, 0.0f));
         glm::vec3 right = glm::rotate(m_Rotation, glm::vec3(1.0f, 0.0f, 0.0f));
 
-        float speed = 100;
+        float speed = 500;
         if (Input::IsKeyPressed(SV_KEY_W)) {
             m_Position += ts.GetSeconds() * forward * speed;
         }

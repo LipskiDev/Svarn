@@ -30,6 +30,8 @@ namespace Svarn {
         static Texture* Create(std::string texturePath);
         static Texture* Create(TextureSpecification spec);
 
+        uint32_t m_RendererID;
+
         private:
         virtual void MapFormat(TextureFormat f, unsigned& internal, unsigned& format, unsigned& type) = 0;
 
@@ -43,7 +45,6 @@ namespace Svarn {
         static bool IsDepth(TextureFormat f);
 
         protected:
-        uint32_t m_RendererID;
         TextureSpecification m_Spec;
     };
 

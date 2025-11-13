@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include "Svarn/Scene/Camera.h"
 namespace Svarn {
 
@@ -29,6 +30,11 @@ namespace Svarn {
         glm::vec3 origin{0, 0, 0};
     };
 
+    struct ChunkData {
+        ChunkId id{};
+        std::shared_ptr<Texture> heightmap;
+    };
+
     struct StreamPlan {
         std::vector<ChunkId> resident;
         std::vector<ChunkId> cpuLoads;
@@ -37,14 +43,32 @@ namespace Svarn {
     };
 
     class TerrainStreamer {
+        friend TerrainStreamer& GetTerrainStreamer();
+        TerrainStreamer() = default;
+
+        TerrainStreamer(const TerrainStreamer&) = delete;
+        TerrainStreamer& operator=(const TerrainStreamer&) = delete;
+
+        TerrainStreamer(TerrainStreamer&&) = delete;
+        TerrainStreamer& operator=(TerrainStreamer&&) = delete;
+
         public:
         StreamPlan ComputePlan(const Camera& cam);
         ChunkId GetCurrentChunk(const Camera& cam);
         glm::vec2 GetChunkOffset(const ChunkId& chunkId);
 
+        ChunkData GetChunkData(ChunkId id);
+        void AddChunkData(ChunkId id, std::shared_ptr<Texture> heightMap);
+
+        ChunkMeta GetChunkMeta(ChunkId id);
+        void SetChunkMeta(ChunkId id, ChunkMeta meta);
+
+        int GetChunkSize() { return m_MetersPerChunk; }
+
         private:
         int m_MetersPerChunk = 256;
-        std::unordered_map<ChunkId, ChunkMeta, ChunkIdHash> chunksData;
+        std::unordered_map<ChunkId, ChunkMeta, ChunkIdHash> m_ChunksMeta;
+        std::unordered_map<ChunkId, ChunkData, ChunkIdHash> m_ChunksData;
     };
 
     SVARN_API TerrainStreamer& GetTerrainStreamer();

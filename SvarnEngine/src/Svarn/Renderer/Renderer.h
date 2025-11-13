@@ -53,9 +53,11 @@ namespace Svarn {
 
         // Temp
         std::shared_ptr<Texture> m_HeightmapTextureChunk00;
+        std::shared_ptr<Texture> m_HeightmapTextureChunk01;
 
         // Terrain Renderer Variables
         bool m_ShouldRenderTerrain = false;
+        TextureSpecification m_HeightMapTextureSpecification;
 
         std::shared_ptr<Mesh> m_PatchMesh;
         Material m_TerrainMaterial = Material::FromValues("Terrain Material", glm::vec3(1.0), 1.0, 0.0);

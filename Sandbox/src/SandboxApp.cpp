@@ -63,9 +63,28 @@ class ExampleLayer : public Layer {
             ImGui::Separator();
             ImGui::Spacing();
 
+            int totalKB = 0;
+            int availKB = 0;
+
+            glGetIntegerv(GL_GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX, &totalKB);
+            glGetIntegerv(GL_GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX, &availKB);
+
+            int usedKB = totalKB - availKB;
+
+            // Convert to MB
+            float usedMB = usedKB / 1024.0f;
+            float totalMB = totalKB / 1024.0f;
+
+            // Display
+            ImGui::Text("VRAM: %.1f MB / %.1f MB", usedMB, totalMB);
+            ImGui::ProgressBar(usedMB / totalMB, ImVec2(200, 20));
+            ImGui::Spacing();
+            ImGui::Separator();
+            ImGui::Spacing();
+
             auto camPos = m_Camera->GetPosition();
             auto camChunk = GetTerrainStreamer().GetCurrentChunk(*m_Camera);
-            ImGui::Text("Camera Coordinates: (%f, %f)", camPos.x, camPos.z);
+            ImGui::Text("Camera Coordinates: (%.1f, %.1f)", camPos.x, camPos.z);
             ImGui::Text("Camera Chunk: (%d, %d)", (int)camChunk.x, (int)camChunk.z);
 
             ImGui::Spacing();
